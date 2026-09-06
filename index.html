@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Nascondino Pozzallo</title>
-    <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     
     <style>
@@ -127,7 +126,7 @@
             color: #fca5a5;
             z-index: 10;
         }
-        .timer-bar.hidden { display: none; }
+        .timer-bar.hidden { display: none !important; }
         #timer-display {
             font-size: 1rem;
             color: #ffffff;
@@ -142,6 +141,29 @@
             width: 100%;
             z-index: 1;
         }
+
+        /* Pulsante Stile Mappa (Tipo Google Maps in alto a destra) */
+        .map-type-toggle {
+            position: absolute;
+            top: 110px;
+            right: 12px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            z-index: 998;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: border-color 0.2s;
+        }
+        .map-type-toggle:active { transform: scale(0.95); }
+        .map-type-toggle:hover { border-color: var(--accent-blue); }
 
         .btn-center-map {
             position: absolute;
@@ -423,14 +445,16 @@
         <div class="status-item">🕵️ Chi cerca: <span id="current-seeker-display" style="color: var(--accent-red);">Nessuno</span></div>
     </div>
 
-    <!-- Barra del Timer in tempo reale -->
     <div id="global-timer-bar" class="timer-bar hidden">
         <span>⏳ Tempo rimanente:</span>
         <span id="timer-display">00:00</span>
     </div>
 
-    <!-- Mappa OpenStreetMap -->
     <div id="map"></div>
+
+    <button class="map-type-toggle" onclick="toggleMapTypeLocal()">
+        🗺️ <span id="map-type-label">Satellitare</span>
+    </button>
 
     <button class="btn-center-map" onclick="centraMappaSuMe()" title="Centra sulla mia posizione">🎯</button>
     
@@ -438,7 +462,6 @@
 
     <div class="watermark">Created by Marco C.</div>
 
-    <!-- Modale di Gestione Admin -->
     <div id="seeker-modal" class="modal-overlay modal-hidden">
         <div class="modal-content">
             <h2>🕵️ GESTISCI GIOCO</h2>
@@ -470,7 +493,6 @@
         </div>
     </div>
 
-    <!-- Modale delle Regole -->
     <div id="rules-modal" class="modal-overlay">
         <div class="modal-content">
             <h2>‼️ 🚨 REGOLE PER STASERA 🚨 ‼️</h2>
@@ -495,10 +517,8 @@
         </div>
     </div>
 
-    <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
-    <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
         import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
@@ -523,10 +543,22 @@
         const map = L.map('map', { zoomControl: false }).setView(baseCoords, 16);
         L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        // Layer delle mappe (Normale e Satellitare con immagini Esri stile Google Maps)
+        const normalLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
             attribution: '&copy; OpenStreetMap contributors'
-        }).addTo(map);
+        });
+
+        const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            maxZoom: 19,
+            attribution: 'Tiles &copy; Esri'
+        });
+
+        // Impostazione locale iniziale (legge dalla memoria del telefono se l'utente aveva scelto il satellite)
+        let isSatelliteLocal = localStorage.getItem('map_satellite') === 'true';
+        let currentActiveLayer = isSatelliteLocal ? satelliteLayer : normalLayer;
+        currentActiveLayer.addTo(map);
+        aggiornaLabelPulsanteMappa();
 
         L.marker(baseCoords).addTo(map).bindPopup('<b>CAMPO BASE</b><br>Chiesa Porto Salvo').openPopup();
 
@@ -543,6 +575,30 @@
         const coordsElement = document.getElementById('coords');
         let watchId = null;
         let activeSeekerData = { seekers: [], timerEnd: 0 };
+
+        // Funzione per cambiare mappa in locale sul singolo dispositivo
+        window.toggleMapTypeLocal = function() {
+            isSatelliteLocal = !isSatelliteLocal;
+            localStorage.setItem('map_satellite', isSatelliteLocal);
+
+            if (isSatelliteLocal) {
+                map.removeLayer(normalLayer);
+                satelliteLayer.addTo(map);
+            } else {
+                map.removeLayer(satelliteLayer);
+                normalLayer.addTo(map);
+            }
+            aggiornaLabelPulsanteMappa();
+        }
+
+        function aggiornaLabelPulsanteMappa() {
+            const label = document.getElementById('map-type-label');
+            if (isSatelliteLocal) {
+                label.textContent = "Normale";
+            } else {
+                label.textContent = "Satellitare";
+            }
+        }
 
         function avviaGPS() {
             if ("geolocation" in navigator) {
@@ -589,7 +645,12 @@
         }
 
         window.toggleRulesModal = function(show) {
-            document.getElementById('rules-modal').classList.toggle('modal-hidden', !show);
+            const rulesModal = document.getElementById('rules-modal');
+            if (show) {
+                rulesModal.classList.remove('modal-hidden');
+            } else {
+                rulesModal.classList.add('modal-hidden');
+            }
             setTimeout(() => { map.invalidateSize(); }, 200);
         }
 
@@ -607,7 +668,13 @@
         }
 
         window.chiudiRegoleEAvviaGPS = function() {
-            toggleRulesModal(false);
+            const modal = document.getElementById('rules-modal');
+            if (modal) {
+                modal.classList.add('modal-hidden');
+            }
+            setTimeout(() => {
+                map.invalidateSize();
+            }, 100);
             avviaGPS();
         }
 
@@ -659,7 +726,7 @@
             });
         }
 
-        // Ascolta in tempo reale lo stato del gioco da Firebase
+        // Ascolta solo lo stato del gioco (chi cerca e timer) da Firebase, lasciando la mappa completamente locale
         onValue(ref(db, 'gameState'), (snapshot) => {
             const data = snapshot.val();
             if (data) {
@@ -713,8 +780,6 @@
                 });
             }
         }
-
-        avviaGPS();
     </script>
 </body>
 </html>
