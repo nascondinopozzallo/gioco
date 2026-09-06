@@ -350,10 +350,10 @@
     <div id="dev-modal" class="modal-overlay modal-hidden">
         <div class="modal-content">
             <h2 style="color: var(--accent-blue);">🛠️ WEB DEVELOPER</h2>
-            <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 12px;">Modifica o ridisegna manualmente il range a rettangolo sulla mappa.</p>
+            <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 12px;">Disegna liberamente il perimetro dell'area di gioco toccando i punti sulla mappa.</p>
 
-            <button class="btn-timer-ctrl btn-editor-mode" onclick="disegnaRangeRettangolo()">⬛ Disegna / Aggiorna Range a Rettangolo</button>
-            <button class="btn-timer-ctrl btn-stop-timer" onclick="cancellaRangeEditor()">🗑️ Cancella Range</button>
+            <button class="btn-timer-ctrl btn-editor-mode" onclick="disegnaAreaLibera()">✏️ Disegna / Aggiorna Area Libera</button>
+            <button class="btn-timer-ctrl btn-stop-timer" onclick="cancellaRangeEditor()">🗑️ Cancella Area</button>
 
             <button class="btn-close" onclick="toggleDevModal(false)">ESCI</button>
         </div>
@@ -453,11 +453,11 @@
             document.getElementById('seeker-modal').classList.add('modal-hidden');
         }
 
-        window.disegnaRangeRettangolo = function() {
+        window.disegnaAreaLibera = function() {
             toggleDevModal(false);
-            alert("Modalità disegno attiva: Clicca e trascina sulla mappa per creare/aggiornare il rettangolo del range.");
+            alert("Modalità disegno libero attiva: Tocca punti multipli sulla mappa per tracciare l'area. Clicca sul primo punto per chiudere la forma.");
             
-            const drawControl = new L.Draw.Rectangle(map, {
+            const drawControl = new L.Draw.Polygon(map, {
                 shapeOptions: { color: '#38bdf8', fillColor: '#38bdf8', fillOpacity: 0.3 }
             });
             drawControl.enable();
@@ -469,7 +469,7 @@
                 
                 activeGameData.rangeCoords = layer.getLatLngs()[0];
                 salvaInFirebase();
-                alert("Range a rettangolo aggiornato e salvato con successo!");
+                alert("Area di gioco personalizzata salvata con successo!");
             });
         }
 
@@ -477,7 +477,7 @@
             drawnItems.clearLayers();
             activeGameData.rangeCoords = null;
             salvaInFirebase();
-            alert("Range cancellato.");
+            alert("Area cancellata.");
         }
 
         function salvaInFirebase() {
@@ -493,8 +493,8 @@
                 }
                 if (data.rangeCoords) {
                     drawnItems.clearLayers();
-                    const rect = L.polygon(data.rangeCoords, { color: '#38bdf8', fillColor: '#38bdf8', fillOpacity: 0.2 });
-                    drawnItems.addLayer(rect);
+                    const poly = L.polygon(data.rangeCoords, { color: '#38bdf8', fillColor: '#38bdf8', fillOpacity: 0.2 });
+                    drawnItems.addLayer(poly);
                 }
             }
         });
