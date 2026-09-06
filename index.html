@@ -113,6 +113,30 @@
             margin-left: 4px;
         }
 
+        /* Barra Timer Globale */
+        .timer-bar {
+            background: linear-gradient(135deg, #1e1b4b, #31103f);
+            border-bottom: 1px solid rgba(244, 63, 94, 0.3);
+            padding: 6px 14px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #fca5a5;
+            z-index: 10;
+        }
+        .timer-bar.hidden { display: none; }
+        #timer-display {
+            font-size: 1rem;
+            color: #ffffff;
+            background: rgba(0,0,0,0.3);
+            padding: 2px 8px;
+            border-radius: 6px;
+            letter-spacing: 1px;
+        }
+
         #map {
             flex-grow: 1;
             width: 100%;
@@ -140,7 +164,6 @@
         }
         .btn-center-map:active { transform: scale(0.9); }
 
-        /* Pulsante Segreto Piccolo in Basso a Sinistra */
         .btn-secret-admin {
             position: absolute;
             bottom: 30px;
@@ -333,6 +356,54 @@
             font-weight: bold;
             color: white;
         }
+
+        .admin-section-title {
+            font-size: 0.85rem;
+            color: var(--accent-blue);
+            margin: 14px 0 6px 0;
+            font-weight: 700;
+            border-top: 1px solid var(--border-color);
+            padding-top: 10px;
+        }
+
+        .timer-inputs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .timer-inputs div {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .timer-inputs input {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border-color);
+            padding: 8px;
+            border-radius: 8px;
+            color: white;
+            font-size: 0.9rem;
+            text-align: center;
+            outline: none;
+        }
+
+        .btn-timer-ctrl {
+            width: 100%;
+            padding: 10px;
+            border-radius: 10px;
+            border: none;
+            font-weight: 700;
+            font-size: 0.8rem;
+            cursor: pointer;
+            margin-bottom: 6px;
+        }
+        .btn-start-timer { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; }
+        .btn-stop-timer { background: rgba(244, 63, 94, 0.2); border: 1px solid var(--accent-red); color: #fca5a5; }
     </style>
 </head>
 <body>
@@ -352,34 +423,50 @@
         <div class="status-item">🕵️ Chi cerca: <span id="current-seeker-display" style="color: var(--accent-red);">Nessuno</span></div>
     </div>
 
+    <!-- Barra del Timer in tempo reale -->
+    <div id="global-timer-bar" class="timer-bar hidden">
+        <span>⏳ Tempo rimanente:</span>
+        <span id="timer-display">00:00</span>
+    </div>
+
     <!-- Mappa OpenStreetMap -->
     <div id="map"></div>
 
     <button class="btn-center-map" onclick="centraMappaSuMe()" title="Centra sulla mia posizione">🎯</button>
     
-    <!-- Pulsante segreto in basso a sinistra per aprire la gestione -->
     <button class="btn-secret-admin" onclick="controllaAdminEApri()" title="Admin">⚙️</button>
 
     <div class="watermark">Created by Marco C.</div>
 
-    <!-- Modale di Gestione (Protetto da Password) -->
+    <!-- Modale di Gestione Admin -->
     <div id="seeker-modal" class="modal-overlay modal-hidden">
         <div class="modal-content">
-            <h2>🕵️ GESTISCI CHI CERCA</h2>
-            <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 10px;">Inserisci la password amministratore:</p>
+            <h2>🕵️ GESTISCI GIOCO</h2>
             
-            <div class="seeker-input-group">
-                <input type="password" id="admin-pass" placeholder="Password Admin" style="margin-bottom:8px; width:100%;">
-            </div>
-            
+            <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 6px;">Chi cerca:</p>
             <div class="seeker-input-group">
                 <input type="text" id="seeker-name-input" placeholder="Es. Marco, Luca..." onkeypress="handleSeekerKeypress(event)">
                 <button class="btn-add-seeker" onclick="aggiungiCercatore()">Aggiungi</button>
             </div>
-
             <div class="seekers-list" id="seekers-container"></div>
 
-            <button class="btn-close" onclick="toggleSeekerModal(false)">SALVA E AGGIORNA PER TUTTI</button>
+            <div class="admin-section-title">⏱️ Gestione Timer</div>
+            <div class="timer-inputs">
+                <div>
+                    <label>Minuti</label>
+                    <input type="number" id="input-mins" value="2" min="0" max="60">
+                </div>
+                <div>
+                    <label>Secondi</label>
+                    <input type="number" id="input-secs" value="0" min="0" max="59">
+                </div>
+            </div>
+            <button class="btn-timer-ctrl btn-start-timer" onclick="avviaTimerAdmin()">▶️ AVVIA TIMER PER TUTTI</button>
+            <button class="btn-timer-ctrl btn-stop-timer" onclick="fermaTimerAdmin()">⏹️ AZZERA / CHIUDI TIMER</button>
+
+            <div style="margin-top: 14px;">
+                <button class="btn-close" onclick="toggleSeekerModal(false)">SALVA E CHIUDI</button>
+            </div>
         </div>
     </div>
 
@@ -419,6 +506,7 @@
         const firebaseConfig = {
             apiKey: "AIzaSyDeZ7UFtXW6ysLTuSAQKYN1Zvx7NVxKou4",
             authDomain: "nascondino-pozzallo.firebaseapp.com",
+            databaseURL: "https://nascondino-pozzallo-default-rtdb.europe-west1.firebasedatabase.app",
             projectId: "nascondino-pozzallo",
             storageBucket: "nascondino-pozzallo.firebasestorage.app",
             messagingSenderId: "190044422120",
@@ -454,7 +542,7 @@
         let lastLatLon = null;
         const coordsElement = document.getElementById('coords');
         let watchId = null;
-        let activeSeekers = [];
+        let activeSeekerData = { seekers: [], timerEnd: 0 };
 
         function avviaGPS() {
             if ("geolocation" in navigator) {
@@ -502,75 +590,9 @@
 
         window.toggleRulesModal = function(show) {
             document.getElementById('rules-modal').classList.toggle('modal-hidden', !show);
+            setTimeout(() => { map.invalidateSize(); }, 200);
         }
 
         window.controllaAdminEApri = function() {
-            const pass = prompt("Inserisci la password admin per cambiare chi cerca:");
-            if (pass === "pozzallo2026") {
-                document.getElementById('seeker-modal').classList.remove('modal-hidden');
-            } else if (pass !== null) {
-                alert("Password errata!");
-            }
-        }
-
-        window.toggleSeekerModal = function(show) {
-            document.getElementById('seeker-modal').classList.toggle('modal-hidden', !show);
-        }
-
-        window.chiudiRegoleEAvviaGPS = function() {
-            toggleRulesModal(false);
-            avviaGPS();
-        }
-
-        window.handleSeekerKeypress = function(e) {
-            if (e.key === 'Enter') aggiungiCercatore();
-        }
-
-        window.aggiungiCercatore = function() {
-            const input = document.getElementById('seeker-name-input');
-            const name = input.value.trim();
-            if (name !== "") {
-                activeSeekers.push(name);
-                input.value = "";
-                salvaInFirebase();
-            }
-        }
-
-        window.rimuoviCercatore = function(index) {
-            activeSeekers.splice(index, 1);
-            salvaInFirebase();
-        }
-
-        function salvaInFirebase() {
-            set(ref(db, 'seekers'), activeSeekers);
-        }
-
-        // Ascolta i cambiamenti in tempo reale dal database per tutti i membri
-        onValue(ref(db, 'seekers'), (snapshot) => {
-            const data = snapshot.val();
-            activeSeekers = data ? data : [];
-            renderSeekers();
-        });
-
-        function renderSeekers() {
-            const container = document.getElementById('seekers-container');
-            const display = document.getElementById('current-seeker-display');
-            
-            container.innerHTML = "";
-            if (activeSeekers.length === 0) {
-                display.textContent = "Nessuno";
-            } else {
-                display.textContent = activeSeekers.join(", ");
-                activeSeekers.forEach((seeker, idx) => {
-                    const chip = document.createElement('div');
-                    chip.className = 'seeker-chip';
-                    chip.innerHTML = `${seeker} <span class="remove-btn" onclick="rimuoviCercatore(${idx})">×</span>`;
-                    container.appendChild(chip);
-                });
-            }
-        }
-
-        avviaGPS();
-    </script>
-</body>
-</html>
+            const pass = prompt("Inserisci la password admin per gestire il gioco:");
+            if (
