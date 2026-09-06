@@ -24,6 +24,7 @@
             margin: 0;
             padding: 0;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
@@ -32,12 +33,13 @@
             display: flex;
             flex-direction: column;
             height: 100vh;
+            height: 100dvh;
             overflow: hidden;
         }
 
         header {
             background: linear-gradient(135deg, #131c31, #1e293b);
-            padding: 12px 18px;
+            padding: 10px 14px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -47,44 +49,50 @@
         }
 
         h1 {
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             color: var(--accent-blue);
             font-weight: 700;
             letter-spacing: -0.3px;
         }
 
-        .btn-rules {
-            background: linear-gradient(135deg, #3b82f6, #2563eb);
+        .header-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .btn-action {
             color: white;
             border: none;
-            padding: 7px 14px;
+            padding: 6px 10px;
             border-radius: 8px;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             font-weight: 700;
             cursor: pointer;
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
             transition: transform 0.1s ease;
         }
 
-        .btn-rules:active {
+        .btn-action:active {
             transform: scale(0.95);
         }
 
+        .btn-rules { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+
         .status-bar {
             background-color: var(--bg-card);
-            padding: 10px 18px;
+            padding: 8px 14px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid var(--border-color);
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             z-index: 10;
         }
 
         .status-item {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 5px;
             color: var(--text-muted);
         }
 
@@ -97,12 +105,12 @@
             background: rgba(56, 189, 248, 0.15);
             border: 1px solid var(--accent-blue);
             color: var(--accent-blue);
-            padding: 3px 8px;
+            padding: 3px 6px;
             border-radius: 6px;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             font-weight: 600;
             cursor: pointer;
-            margin-left: 5px;
+            margin-left: 4px;
         }
 
         #map {
@@ -111,10 +119,56 @@
             z-index: 1;
         }
 
+        .btn-center-map {
+            position: absolute;
+            bottom: 30px;
+            right: 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--accent-blue);
+            color: var(--accent-blue);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            cursor: pointer;
+            z-index: 998;
+            transition: transform 0.1s;
+        }
+        .btn-center-map:active { transform: scale(0.9); }
+
+        /* Pulsante Segreto Piccolo in Basso a Sinistra */
+        .btn-secret-admin {
+            position: absolute;
+            bottom: 30px;
+            left: 14px;
+            background: rgba(19, 28, 49, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.3);
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            cursor: pointer;
+            z-index: 998;
+            transition: all 0.2s;
+        }
+        .btn-secret-admin:hover, .btn-secret-admin:active {
+            color: var(--accent-red);
+            border-color: var(--accent-red);
+            background: var(--bg-card);
+        }
+
         .watermark {
             position: absolute;
             bottom: 8px;
-            right: 12px;
+            left: 14px;
             font-size: 0.65rem;
             color: rgba(255, 255, 255, 0.35);
             z-index: 999;
@@ -123,7 +177,7 @@
             letter-spacing: 0.5px;
         }
 
-        #rules-modal {
+        .modal-overlay {
             display: flex;
             position: fixed;
             top: 0;
@@ -132,12 +186,15 @@
             height: 100%;
             background-color: rgba(5, 8, 15, 0.85);
             backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             z-index: 9999;
             justify-content: center;
             align-items: center;
-            padding: 15px;
+            padding: 12px;
             animation: fadeIn 0.3s ease;
         }
+
+        .modal-hidden { display: none !important; }
 
         @keyframes fadeIn {
             from { opacity: 0; transform: scale(0.95); }
@@ -147,51 +204,49 @@
         .modal-content {
             background-color: var(--bg-card);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            padding: 24px;
+            border-radius: 18px;
+            padding: 18px;
             width: 100%;
-            max-width: 440px;
-            max-height: 88vh;
+            max-width: 400px;
+            max-height: 85vh;
             overflow-y: auto;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
         }
 
         .modal-content h2 {
             color: var(--accent-red);
-            margin-bottom: 16px;
-            font-size: 1.15rem;
+            margin-bottom: 12px;
+            font-size: 1.05rem;
             text-align: center;
             letter-spacing: -0.5px;
         }
 
         .modal-content ol {
-            padding-left: 18px;
-            font-size: 0.85rem;
+            padding-left: 16px;
+            font-size: 0.8rem;
             color: #cbd5e1;
-            line-height: 1.6;
-            margin-bottom: 18px;
+            line-height: 1.5;
+            margin-bottom: 14px;
         }
 
-        .modal-content li {
-            margin-bottom: 10px;
-        }
+        .modal-content li { margin-bottom: 8px; }
 
         .gps-warning-note {
             background: rgba(244, 63, 94, 0.1);
             border-left: 3px solid var(--accent-red);
-            padding: 10px 12px;
+            padding: 8px 10px;
             border-radius: 0 8px 8px 0;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             color: #fca5a5;
-            margin-bottom: 16px;
-            line-height: 1.4;
+            margin-bottom: 12px;
+            line-height: 1.35;
         }
 
         .creator-tag {
             text-align: center;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             color: var(--text-muted);
-            margin-bottom: 16px;
+            margin-bottom: 12px;
             font-style: italic;
         }
 
@@ -204,27 +259,79 @@
             text-align: center;
             color: var(--accent-blue);
             font-weight: 700;
-            font-size: 0.9rem;
-            margin-bottom: 18px;
+            font-size: 0.85rem;
+            margin-bottom: 14px;
             letter-spacing: -0.3px;
         }
 
         .btn-close {
             width: 100%;
-            padding: 14px;
+            padding: 12px;
             background: linear-gradient(135deg, var(--accent-green), #059669);
             color: white;
             border: none;
             border-radius: 12px;
-            font-size: 0.95rem;
+            font-size: 0.85rem;
             font-weight: 700;
             cursor: pointer;
             box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
             transition: transform 0.1s ease;
         }
+        .btn-close:active { transform: scale(0.97); }
 
-        .btn-close:active {
-            transform: scale(0.97);
+        .seeker-input-group {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .seeker-input-group input {
+            flex-grow: 1;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border-color);
+            padding: 10px 12px;
+            border-radius: 10px;
+            color: white;
+            font-size: 0.85rem;
+            outline: none;
+        }
+        .seeker-input-group input:focus { border-color: var(--accent-blue); }
+
+        .btn-add-seeker {
+            background: var(--accent-blue);
+            color: #090d16;
+            border: none;
+            padding: 0 14px;
+            font-weight: 700;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        .seekers-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 16px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .seeker-chip {
+            background: rgba(244, 63, 94, 0.15);
+            border: 1px solid var(--accent-red);
+            color: #fca5a5;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .seeker-chip .remove-btn {
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
         }
     </style>
 </head>
@@ -233,26 +340,51 @@
     <header>
         <h1>📍 Nascondino Pozzallo</h1>
         <div class="header-actions">
-            <button class="btn-rules" onclick="toggleRules(true)">🚨 REGOLE</button>
+            <button class="btn-action btn-rules" onclick="toggleRulesModal(true)">🚨 Regole</button>
         </div>
     </header>
 
     <div class="status-bar">
         <div class="status-item">
             📍 GPS: <span id="coords">In attesa...</span>
-            <button class="btn-gps-retry" onclick="avviaGPS()">Attiva</button>
+            <button class="btn-gps-retry" onclick="avviaGPS()">Aggiorna</button>
         </div>
-        <div class="status-item">⭕ Area: <span>Villa / Delfino</span></div>
+        <div class="status-item">🕵️ Chi cerca: <span id="current-seeker-display" style="color: var(--accent-red);">Nessuno</span></div>
     </div>
 
     <!-- Mappa OpenStreetMap -->
     <div id="map"></div>
 
-    <!-- Firma in piccolo -->
+    <button class="btn-center-map" onclick="centraMappaSuMe()" title="Centra sulla mia posizione">🎯</button>
+    
+    <!-- Pulsante segreto in basso a sinistra per aprire la gestione -->
+    <button class="btn-secret-admin" onclick="controllaAdminEApri()" title="Admin">⚙️</button>
+
     <div class="watermark">Created by Marco C.</div>
 
+    <!-- Modale di Gestione (Protetto da Password) -->
+    <div id="seeker-modal" class="modal-overlay modal-hidden">
+        <div class="modal-content">
+            <h2>🕵️ GESTISCI CHI CERCA</h2>
+            <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 10px;">Inserisci la password amministratore:</p>
+            
+            <div class="seeker-input-group">
+                <input type="password" id="admin-pass" placeholder="Password Admin" style="margin-bottom:8px; width:100%;">
+            </div>
+            
+            <div class="seeker-input-group">
+                <input type="text" id="seeker-name-input" placeholder="Es. Marco, Luca..." onkeypress="handleSeekerKeypress(event)">
+                <button class="btn-add-seeker" onclick="aggiungiCercatore()">Aggiungi</button>
+            </div>
+
+            <div class="seekers-list" id="seekers-container"></div>
+
+            <button class="btn-close" onclick="toggleSeekerModal(false)">SALVA E AGGIORNA PER TUTTI</button>
+        </div>
+    </div>
+
     <!-- Modale delle Regole -->
-    <div id="rules-modal">
+    <div id="rules-modal" class="modal-overlay">
         <div class="modal-content">
             <h2>‼️ 🚨 REGOLE PER STASERA 🚨 ‼️</h2>
             <ol>
@@ -264,7 +396,7 @@
             </ol>
             
             <div class="gps-warning-note">
-                💡 <strong>Nota GPS:</strong> Non sopravvalutare l'avviso quando ti viene chiesto di attivare la posizione; se il browser lo richiede, autorizzalo tranquillamente per vedere la tua posizione sulla mappa in tempo reale.
+                💡 <strong>Nota GPS:</strong> Non sopravvalutare l'avviso quando ti viene chiesto di attivare la posizione; se il browser lo richiede, autorizzalo tranquillamente per vedere la tua posizione sulla mappa in real time.
             </div>
 
             <div class="creator-tag">
@@ -279,12 +411,28 @@
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
-    <script>
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDeZ7UFtXW6ysLTuSAQKYN1Zvx7NVxKou4",
+            authDomain: "nascondino-pozzallo.firebaseapp.com",
+            projectId: "nascondino-pozzallo",
+            storageBucket: "nascondino-pozzallo.firebasestorage.app",
+            messagingSenderId: "190044422120",
+            appId: "1:190044422120:web:0465d2df96368cb404ee5d",
+            measurementId: "G-GZ5GFRJ5MR"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
         const baseCoords = [36.728059, 14.848567];
         const gameRadius = 350; 
 
         const map = L.map('map', { zoomControl: false }).setView(baseCoords, 16);
-
         L.control.zoom({ position: 'bottomright' }).addTo(map);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -292,34 +440,32 @@
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
 
-        const baseMarker = L.marker(baseCoords).addTo(map)
-            .bindPopup('<b>CAMPO BASE</b><br>Chiesa Porto Salvo')
-            .openPopup();
+        L.marker(baseCoords).addTo(map).bindPopup('<b>CAMPO BASE</b><br>Chiesa Porto Salvo').openPopup();
 
-        const maxRangeCircle = L.circle(baseCoords, {
-            color: '#ef4444',
-            fillColor: '#f43f5e',
-            fillOpacity: 0.1,
+        L.circle(baseCoords, {
+            color: '#10b981',
+            fillColor: '#10b981',
+            fillOpacity: 0.12,
+            weight: 2,
             radius: gameRadius
         }).addTo(map);
 
         let playerMarker = null;
+        let lastLatLon = null;
         const coordsElement = document.getElementById('coords');
         let watchId = null;
+        let activeSeekers = [];
 
         function avviaGPS() {
             if ("geolocation" in navigator) {
                 coordsElement.textContent = "Ricerca...";
-                
-                if (watchId !== null) {
-                    navigator.geolocation.clearWatch(watchId);
-                }
+                if (watchId !== null) navigator.geolocation.clearWatch(watchId);
 
                 watchId = navigator.geolocation.watchPosition(
                     (position) => {
                         const lat = position.coords.latitude;
                         const lon = position.coords.longitude;
-
+                        lastLatLon = [lat, lon];
                         coordsElement.textContent = `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
 
                         if (!playerMarker) {
@@ -330,20 +476,14 @@
                             playerMarker.setLatLng([lat, lon]);
                         }
 
-                        const distance = map.distance([lat, lon], baseCoords);
-                        if (distance > gameRadius) {
+                        if (map.distance([lat, lon], baseCoords) > gameRadius) {
                             coordsElement.style.color = "#ef4444"; 
                         } else {
                             coordsElement.style.color = "#10b981"; 
                         }
                     },
                     (error) => {
-                        console.warn("Errore GPS: ", error.message);
-                        if (error.code === error.PERMISSION_DENIED) {
-                            coordsElement.textContent = "Permesso negato";
-                        } else {
-                            coordsElement.textContent = "Segnale assente";
-                        }
+                        coordsElement.textContent = error.code === error.PERMISSION_DENIED ? "Permesso negato" : "Segnale assente";
                     },
                     { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
                 );
@@ -352,18 +492,85 @@
             }
         }
 
-        function toggleRules(show) {
-            document.getElementById('rules-modal').style.display = show ? 'flex' : 'none';
+        window.centraMappaSuMe = function() {
+            if (lastLatLon) {
+                map.setView(lastLatLon, 17);
+            } else {
+                alert("Posizione GPS non ancora rilevata. Clicca prima su 'Aggiorna'.");
+            }
         }
 
-        function chiudiRegoleEAvviaGPS() {
-            toggleRules(false);
+        window.toggleRulesModal = function(show) {
+            document.getElementById('rules-modal').classList.toggle('modal-hidden', !show);
+        }
+
+        window.controllaAdminEApri = function() {
+            const pass = prompt("Inserisci la password admin per cambiare chi cerca:");
+            if (pass === "pozzallo2026") {
+                document.getElementById('seeker-modal').classList.remove('modal-hidden');
+            } else if (pass !== null) {
+                alert("Password errata!");
+            }
+        }
+
+        window.toggleSeekerModal = function(show) {
+            document.getElementById('seeker-modal').classList.toggle('modal-hidden', !show);
+        }
+
+        window.chiudiRegoleEAvviaGPS = function() {
+            toggleRulesModal(false);
             avviaGPS();
         }
 
-        window.addEventListener('load', () => {
-            avviaGPS();
+        window.handleSeekerKeypress = function(e) {
+            if (e.key === 'Enter') aggiungiCercatore();
+        }
+
+        window.aggiungiCercatore = function() {
+            const input = document.getElementById('seeker-name-input');
+            const name = input.value.trim();
+            if (name !== "") {
+                activeSeekers.push(name);
+                input.value = "";
+                salvaInFirebase();
+            }
+        }
+
+        window.rimuoviCercatore = function(index) {
+            activeSeekers.splice(index, 1);
+            salvaInFirebase();
+        }
+
+        function salvaInFirebase() {
+            set(ref(db, 'seekers'), activeSeekers);
+        }
+
+        // Ascolta i cambiamenti in tempo reale dal database per tutti i membri
+        onValue(ref(db, 'seekers'), (snapshot) => {
+            const data = snapshot.val();
+            activeSeekers = data ? data : [];
+            renderSeekers();
         });
+
+        function renderSeekers() {
+            const container = document.getElementById('seekers-container');
+            const display = document.getElementById('current-seeker-display');
+            
+            container.innerHTML = "";
+            if (activeSeekers.length === 0) {
+                display.textContent = "Nessuno";
+            } else {
+                display.textContent = activeSeekers.join(", ");
+                activeSeekers.forEach((seeker, idx) => {
+                    const chip = document.createElement('div');
+                    chip.className = 'seeker-chip';
+                    chip.innerHTML = `${seeker} <span class="remove-btn" onclick="rimuoviCercatore(${idx})">×</span>`;
+                    container.appendChild(chip);
+                });
+            }
+        }
+
+        avviaGPS();
     </script>
 </body>
 </html>
