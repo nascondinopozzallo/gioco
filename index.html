@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Nascondino Pozzallo</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     
@@ -26,14 +26,19 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        body {
+        html, body {
+            width: 100%;
+            height: 100%;
+            height: 100dvh;
             background-color: var(--bg-main);
             color: var(--text-main);
+            overflow: hidden;
+            position: fixed; /* Evita il trascinamento elastico su iOS */
+        }
+
+        body {
             display: flex;
             flex-direction: column;
-            height: 100vh;
-            height: 100dvh;
-            overflow: hidden;
         }
 
         header {
@@ -45,6 +50,7 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.08);
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
             z-index: 10;
+            flex-shrink: 0;
         }
 
         h1 {
@@ -86,6 +92,7 @@
             border-bottom: 1px solid var(--border-color);
             font-size: 0.75rem;
             z-index: 10;
+            flex-shrink: 0;
         }
 
         .status-item {
@@ -125,6 +132,7 @@
             font-weight: 700;
             color: #fca5a5;
             z-index: 10;
+            flex-shrink: 0;
         }
         .timer-bar.hidden { display: none !important; }
         #timer-display {
@@ -137,15 +145,17 @@
         }
 
         #map {
-            flex-grow: 1;
+            flex: 1 1 auto;
             width: 100%;
+            height: 100%;
             z-index: 1;
+            position: relative;
         }
 
-        /* Pulsante Stile Mappa (Tipo Google Maps in alto a destra) */
+        /* Pulsante Stile Mappa */
         .map-type-toggle {
             position: absolute;
-            top: 110px;
+            top: 115px;
             right: 12px;
             background: var(--bg-card);
             border: 1px solid var(--border-color);
@@ -167,7 +177,7 @@
 
         .btn-center-map {
             position: absolute;
-            bottom: 30px;
+            bottom: 35px;
             right: 16px;
             background: var(--bg-card);
             border: 1px solid var(--accent-blue);
@@ -188,7 +198,7 @@
 
         .btn-secret-admin {
             position: absolute;
-            bottom: 30px;
+            bottom: 35px;
             left: 14px;
             background: rgba(19, 28, 49, 0.6);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -256,6 +266,7 @@
             max-height: 85vh;
             overflow-y: auto;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+            -webkit-overflow-scrolling: touch;
         }
 
         .modal-content h2 {
@@ -526,7 +537,6 @@
         const map = L.map('map', { zoomControl: false }).setView(baseCoords, 16);
         L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-        // Layer delle mappe (Normale e Satellitare con immagini Esri stile Google Maps)
         const normalLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
             attribution: '&copy; OpenStreetMap contributors'
@@ -537,7 +547,6 @@
             attribution: 'Tiles &copy; Esri'
         });
 
-        // Impostazione locale iniziale (legge dalla memoria del telefono se l'utente aveva scelto il satellite)
         let isSatelliteLocal = localStorage.getItem('map_satellite') === 'true';
         let currentActiveLayer = isSatelliteLocal ? satelliteLayer : normalLayer;
         currentActiveLayer.addTo(map);
@@ -559,7 +568,6 @@
         let watchId = null;
         let activeSeekerData = { seekers: [], timerEnd: 0 };
 
-        // Funzione per cambiare mappa in locale sul singolo dispositivo
         window.toggleMapTypeLocal = function() {
             isSatelliteLocal = !isSatelliteLocal;
             localStorage.setItem('map_satellite', isSatelliteLocal);
@@ -593,7 +601,14 @@
                         const lat = position.coords.latitude;
                         const lon = position.coords.longitude;
                         lastLatLon = [lat, lon];
-                        coordsElement.textContent = `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+
+                        if (map.distance([lat, lon], baseCoords) > gameRadius) {
+                            coordsElement.textContent = "Fuori Zona";
+                            coordsElement.style.color = "#ef4444"; 
+                        } else {
+                            coordsElement.textContent = `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+                            coordsElement.style.color = "#10b981"; 
+                        }
 
                         if (!playerMarker) {
                             playerMarker = L.marker([lat, lon], {
@@ -601,12 +616,6 @@
                             }).addTo(map).bindPopup('La tua posizione');
                         } else {
                             playerMarker.setLatLng([lat, lon]);
-                        }
-
-                        if (map.distance([lat, lon], baseCoords) > gameRadius) {
-                            coordsElement.style.color = "#ef4444"; 
-                        } else {
-                            coordsElement.style.color = "#10b981"; 
                         }
                     },
                     (error) => {
