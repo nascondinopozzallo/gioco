@@ -1,3 +1,108 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Nascondino Pozzallo</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"/>
+    
+    <style>
+        :root {
+            --bg-main: #090d16;
+            --bg-card: #131c31;
+            --border-color: #1e293b;
+            --accent-green: #10b981;
+            --accent-red: #f43f5e;
+            --accent-blue: #38bdf8;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            height: 100dvh;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            overflow: hidden;
+            position: fixed;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: linear-gradient(135deg, #131c31, #1e293b);
+            padding: 10px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            z-index: 10;
+            flex-shrink: 0;
+        }
+
+        h1 {
+            font-size: 0.9rem;
+            color: var(--accent-blue);
+            font-weight: 700;
+            letter-spacing: -0.3px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .btn-action {
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            transition: transform 0.1s ease;
+        }
+
+        .btn-action:active { transform: scale(0.95); }
+        .btn-rules { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+
+        .status-bar {
+            background-color: var(--bg-card);
+            padding: 8px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.75rem;
+            z-index: 10;
+            flex-shrink: 0;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--text-muted);
+        }
+
+        .status-item span {
+            font-weight: 600;
+            color: var(--text-main);
         }
 
         .btn-gps-retry {
@@ -61,10 +166,8 @@
             display: flex;
             align-items: center;
             gap: 5px;
-            transition: border-color 0.2s;
         }
         .map-type-toggle:active { transform: scale(0.95); }
-        .map-type-toggle:hover { border-color: var(--accent-blue); }
 
         .btn-center-map {
             position: absolute;
@@ -83,9 +186,7 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.5);
             cursor: pointer;
             z-index: 998;
-            transition: transform 0.1s;
         }
-        .btn-center-map:active { transform: scale(0.9); }
 
         .btn-secret-admin {
             position: absolute;
@@ -103,13 +204,8 @@
             font-size: 0.7rem;
             cursor: pointer;
             z-index: 998;
-            transition: all 0.2s;
         }
-        .btn-secret-admin:hover, .btn-secret-admin:active {
-            color: var(--accent-red);
-            border-color: var(--accent-red);
-            background: var(--bg-card);
-        }
+        .btn-secret-admin:hover { color: var(--accent-red); border-color: var(--accent-red); }
 
         .watermark {
             position: absolute;
@@ -120,7 +216,6 @@
             z-index: 999;
             pointer-events: none;
             font-weight: 500;
-            letter-spacing: 0.5px;
         }
 
         .modal-overlay {
@@ -132,20 +227,12 @@
             height: 100%;
             background-color: rgba(5, 8, 15, 0.85);
             backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
             z-index: 9999;
             justify-content: center;
             align-items: center;
             padding: 12px;
-            animation: fadeIn 0.3s ease;
         }
-
         .modal-hidden { display: none !important; }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
-        }
 
         .modal-content {
             background-color: var(--bg-card);
@@ -157,7 +244,6 @@
             max-height: 85vh;
             overflow-y: auto;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
-            -webkit-overflow-scrolling: touch;
         }
 
         .modal-content h2 {
@@ -165,37 +251,6 @@
             margin-bottom: 12px;
             font-size: 1.05rem;
             text-align: center;
-            letter-spacing: -0.5px;
-        }
-
-        .modal-content ol {
-            padding-left: 16px;
-            font-size: 0.8rem;
-            color: #cbd5e1;
-            line-height: 1.5;
-            margin-bottom: 14px;
-        }
-
-        .modal-content li { margin-bottom: 8px; }
-
-        .gps-warning-note {
-            background: rgba(244, 63, 94, 0.1);
-            border-left: 3px solid var(--accent-red);
-            padding: 8px 10px;
-            border-radius: 0 8px 8px 0;
-            font-size: 0.75rem;
-            color: #fca5a5;
-            margin-bottom: 12px;
-            line-height: 1.35;
-        }
-
-        .footer-note {
-            text-align: center;
-            color: var(--accent-blue);
-            font-weight: 700;
-            font-size: 0.85rem;
-            margin-bottom: 14px;
-            letter-spacing: -0.3px;
         }
 
         .btn-close {
@@ -208,64 +263,7 @@
             font-size: 0.85rem;
             font-weight: 700;
             cursor: pointer;
-            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
-            transition: transform 0.1s ease;
-        }
-        .btn-close:active { transform: scale(0.97); }
-
-        .seeker-input-group {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 12px;
-        }
-
-        .seeker-input-group input {
-            flex-grow: 1;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid var(--border-color);
-            padding: 10px 12px;
-            border-radius: 10px;
-            color: white;
-            font-size: 0.85rem;
-            outline: none;
-        }
-        .seeker-input-group input:focus { border-color: var(--accent-blue); }
-
-        .btn-add-seeker {
-            background: var(--accent-blue);
-            color: #090d16;
-            border: none;
-            padding: 0 14px;
-            font-weight: 700;
-            border-radius: 10px;
-            cursor: pointer;
-        }
-
-        .seekers-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            margin-bottom: 16px;
-            max-height: 150px;
-            overflow-y: auto;
-        }
-
-        .seeker-chip {
-            background: rgba(244, 63, 94, 0.15);
-            border: 1px solid var(--accent-red);
-            color: #fca5a5;
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .seeker-chip .remove-btn {
-            cursor: pointer;
-            font-weight: bold;
-            color: white;
+            margin-top: 10px;
         }
 
         .admin-section-title {
@@ -275,32 +273,6 @@
             font-weight: 700;
             border-top: 1px solid var(--border-color);
             padding-top: 10px;
-        }
-
-        .timer-inputs {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 10px;
-        }
-
-        .timer-inputs div {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            font-size: 0.7rem;
-            color: var(--text-muted);
-        }
-
-        .timer-inputs input {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid var(--border-color);
-            padding: 8px;
-            border-radius: 8px;
-            color: white;
-            font-size: 0.9rem;
-            text-align: center;
-            outline: none;
         }
 
         .btn-timer-ctrl {
@@ -315,7 +287,8 @@
         }
         .btn-start-timer { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; }
         .btn-stop-timer { background: rgba(244, 63, 94, 0.2); border: 1px solid var(--accent-red); color: #fca5a5; }
-        .btn-dev-access { background: linear-gradient(135deg, #8b5cf6, #6d28d9); color: white; margin-top: 10px; }
+        .btn-dev-access { background: linear-gradient(135deg, #8b5cf6, #6d28d9); color: white; }
+        .btn-editor-mode { background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; }
     </style>
 </head>
 <body>
@@ -347,95 +320,57 @@
     </button>
 
     <button class="btn-center-map" onclick="centraMappaSuMe()" title="Centra sulla mia posizione">🎯</button>
-    
     <button class="btn-secret-admin" onclick="controllaAdminEApri()" title="Admin">⚙️</button>
 
     <div class="watermark">Created by Marco C.</div>
 
-    <!-- MODALE ADMIN GENERALE -->
+    <!-- MODALE ADMIN -->
     <div id="seeker-modal" class="modal-overlay modal-hidden">
         <div class="modal-content">
             <h2>🕵️ GESTISCI GIOCO</h2>
-            
-            <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 6px;">Chi cerca:</p>
-            <div class="seeker-input-group">
-                <input type="text" id="seeker-name-input" placeholder="Es. Marco, Luca..." onkeypress="handleSeekerKeypress(event)">
-                <button class="btn-add-seeker" onclick="aggiungiCercatore()">Aggiungi</button>
-            </div>
-            <div class="seekers-list" id="seekers-container"></div>
-
             <div class="admin-section-title">⏱️ Gestione Timer</div>
-            <div class="timer-inputs">
-                <div>
-                    <label>Minuti</label>
-                    <input type="number" id="input-mins" value="2" min="0" max="60">
-                </div>
-                <div>
-                    <label>Secondi</label>
-                    <input type="number" id="input-secs" value="0" min="0" max="59">
-                </div>
+            <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                <input type="number" id="input-mins" value="2" min="0" max="60" style="flex:1; padding:8px; background:rgba(255,255,255,0.05); border:1px solid var(--border-color); color:white; border-radius:8px; text-align:center;">
+                <input type="number" id="input-secs" value="0" min="0" max="59" style="flex:1; padding:8px; background:rgba(255,255,255,0.05); border:1px solid var(--border-color); color:white; border-radius:8px; text-align:center;">
             </div>
-            <button class="btn-timer-ctrl btn-start-timer" onclick="avviaTimerAdmin()">▶️ AVVIA TIMER PER TUTTI</button>
-            <button class="btn-timer-ctrl btn-stop-timer" onclick="fermaTimerAdmin()">⏹️ AZZERA / CHIUDI TIMER</button>
-
-            <button class="btn-timer-ctrl btn-dev-access" onclick="controllaDevEApri()">🛠️ Solo Web Developer</button>
-
-            <div style="margin-top: 14px;">
-                <button class="btn-close" onclick="toggleSeekerModal(false)">SALVA E CHIUDI</button>
-            </div>
+            <button class="btn-timer-ctrl btn-start-timer" onclick="avviaTimerAdmin()">▶️ AVVIA TIMER</button>
+            <button class="btn-timer-ctrl btn-stop-timer" onclick="fermaTimerAdmin()">⏹️ AZZERA TIMER</button>
+            
+            <button class="btn-timer-ctrl btn-dev-access" onclick="controllaDevEApri()">🛠️ Portale Web Developer</button>
+            
+            <button class="btn-close" onclick="document.getElementById('seeker-modal').classList.add('modal-hidden');">CHIUDI</button>
         </div>
     </div>
 
-    <!-- MODALE WEB DEVELOPER PERSONALIZZAZIONE MAPPA -->
+    <!-- MODALE PORTALE WEB DEVELOPER -->
     <div id="dev-modal" class="modal-overlay modal-hidden">
         <div class="modal-content">
-            <h2 style="color: var(--accent-blue);">🛠️ WEB DEVELOPER PANEL</h2>
-            <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 12px;">Modifica il campo base e il raggio di gioco per tutti.</p>
+            <h2 style="color: var(--accent-blue);">🛠️ WEB DEVELOPER</h2>
+            <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 12px;">Modifica o ridisegna manualmente il range a rettangolo sulla mappa.</p>
 
-            <div class="admin-section-title">📍 Coordinate Campo Base</div>
-            <div class="timer-inputs">
-                <div>
-                    <label>Latitudine</label>
-                    <input type="number" id="input-lat" step="0.000001">
-                </div>
-                <div>
-                    <label>Longitudine</label>
-                    <input type="number" id="input-lon" step="0.000001">
-                </div>
-            </div>
+            <button class="btn-timer-ctrl btn-editor-mode" onclick="disegnaRangeRettangolo()">⬛ Disegna / Aggiorna Range a Rettangolo</button>
+            <button class="btn-timer-ctrl btn-stop-timer" onclick="cancellaRangeEditor()">🗑️ Cancella Range</button>
 
-            <div class="admin-section-title">🌐 Raggio di Gioco (Metri)</div>
-            <div style="margin-bottom: 12px;">
-                <input type="number" id="input-radius" value="350" min="50" max="5000" style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); padding: 8px; border-radius: 8px; color: white; text-align: center; outline: none;">
-            </div>
-
-            <button class="btn-timer-ctrl btn-start-timer" onclick="salvaImpostazioniDeveloper()">💾 AGGIORNA MAPPA GLOBALE</button>
-            <button class="btn-timer-ctrl btn-stop-timer" onclick="chiudiDevModal()">↩️ Indietro</button>
+            <button class="btn-close" onclick="toggleDevModal(false)">ESCI</button>
         </div>
     </div>
 
     <!-- MODALE REGOLE -->
     <div id="rules-modal" class="modal-overlay">
         <div class="modal-content">
-            <h2>‼️ 🚨 REGOLE PER STASERA 🚨 ‼️</h2>
+            <h2>‼️ 🚨 REGOLE 🚨 ‼️</h2>
             <ol>
-                <li>Si conta o a tre a tre o 4 a 4 (possiamo contare anche tipo femmine e maschi insieme).</li>
+                <li>Si conta o a tre a tre o 4 a 4.</li>
                 <li>Non c’é tana.</li>
-                <li>Ci sono 32 minuti totali, di cui 2 per contare e il resto per cercare, e alla fine andiamo tutti alla porto salvo (campo base).</li>
-                <li>Il <em>bump</em> si può usare e si può decidere se mettere <em>ghost</em> ecc.</li>
+                <li>Ci sono 32 minuti totali.</li>
                 <li>Si fa dalla porto salvo al delfino cioè dentro la villa.</li>
             </ol>
-            
-            <div class="gps-warning-note">
-                💡 <strong>Nota GPS:</strong> Non sopravvalutare l'avviso quando ti viene chiesto di attivare la posizione; se il browser lo richiede, autorizzalo tranquillamente per vedere la tua posizione sulla mappa in real time.
-            </div>
-
-            <div class="footer-note">Buon divertimento!</div>
             <button class="btn-close" onclick="chiudiRegoleEAvviaGPS()">HO LETTO, VAI ALLA MAPPA</button>
         </div>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
@@ -448,311 +383,166 @@
             projectId: "nascondino-pozzallo",
             storageBucket: "nascondino-pozzallo.firebasestorage.app",
             messagingSenderId: "190044422120",
-            appId: "1:190044422120:web:0465d2df96368cb404ee5d",
-            measurementId: "G-GZ5GFRJ5MR"
+            appId: "1:190044422120:web:0465d2df96368cb404ee5d"
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        let baseCoords = [36.728059, 14.848567];
-        let gameRadius = 350; 
-
-        const map = L.map('map', { zoomControl: false }).setView(baseCoords, 16);
+        let currentCenter = [36.728059, 14.848567];
+        const map = L.map('map', { zoomControl: false }).setView(currentCenter, 16);
         L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-        const normalLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '&copy; OpenStreetMap contributors'
-        });
-
-        const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-            maxZoom: 19,
-            attribution: 'Tiles &copy; Esri'
-        });
+        const normalLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 });
+        const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19 });
 
         let isSatelliteLocal = localStorage.getItem('map_satellite') === 'true';
-        let currentActiveLayer = isSatelliteLocal ? satelliteLayer : normalLayer;
-        currentActiveLayer.addTo(map);
-        aggiornaLabelPulsanteMappa();
+        (isSatelliteLocal ? satelliteLayer : normalLayer).addTo(map);
 
-        let baseMarker = L.marker(baseCoords).addTo(map).bindPopup('<b>CAMPO BASE</b><br>Chiesa Porto Salvo');
-        let gameCircle = L.circle(baseCoords, {
-            color: '#10b981',
-            fillColor: '#10b981',
-            fillOpacity: 0.12,
-            weight: 2,
-            radius: gameRadius
-        }).addTo(map);
+        let drawnItems = new L.FeatureGroup();
+        map.addLayer(drawnItems);
 
         let playerMarker = null;
         let lastLatLon = null;
-        const coordsElement = document.getElementById('coords');
         let watchId = null;
-        
-        let activeGameData = { 
-            seekers: [], 
-            timerEnd: 0,
-            baseLat: baseCoords[0],
-            baseLon: baseCoords[1],
-            radius: gameRadius
-        };
+        let activeGameData = { seekers: [], timerEnd: 0, rangeCoords: null };
 
         window.toggleMapTypeLocal = function() {
             isSatelliteLocal = !isSatelliteLocal;
             localStorage.setItem('map_satellite', isSatelliteLocal);
-
-            if (isSatelliteLocal) {
-                map.removeLayer(normalLayer);
-                satelliteLayer.addTo(map);
-            } else {
-                map.removeLayer(satelliteLayer);
-                normalLayer.addTo(map);
-            }
-            aggiornaLabelPulsanteMappa();
-        }
-
-        function aggiornaLabelPulsanteMappa() {
-            const label = document.getElementById('map-type-label');
-            if (isSatelliteLocal) {
-                label.textContent = "Normale";
-            } else {
-                label.textContent = "Satellitare";
-            }
-        }
-
-        function avviaGPS() {
-            if ("geolocation" in navigator) {
-                coordsElement.textContent = "Ricerca...";
-                if (watchId !== null) navigator.geolocation.clearWatch(watchId);
-
-                watchId = navigator.geolocation.watchPosition(
-                    (position) => {
-                        const lat = position.coords.latitude;
-                        const lon = position.coords.longitude;
-                        lastLatLon = [lat, lon];
-
-                        if (map.distance([lat, lon], baseCoords) > gameRadius) {
-                            coordsElement.textContent = "Fuori Zona";
-                            coordsElement.style.color = "#ef4444"; 
-                        } else {
-                            coordsElement.textContent = `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
-                            coordsElement.style.color = "#10b981"; 
-                        }
-
-                        if (!playerMarker) {
-                            playerMarker = L.marker([lat, lon], {
-                                icon: L.divIcon({ className: '', html: '🟢', iconSize: [22, 22] })
-                            }).addTo(map).bindPopup('La tua posizione');
-                        } else {
-                            playerMarker.setLatLng([lat, lon]);
-                        }
-                    },
-                    (error) => {
-                        coordsElement.textContent = error.code === error.PERMISSION_DENIED ? "Permesso negato" : "Segnale assente";
-                    },
-                    { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
-                );
-            } else {
-                coordsElement.textContent = "Non supportato";
-            }
-        }
-
-        window.centraMappaSuMe = function() {
-            if (lastLatLon) {
-                map.setView(lastLatLon, 17);
-            } else {
-                alert("Posizione GPS non ancora rilevata. Clicca prima su 'Aggiorna'.");
-            }
+            if (isSatelliteLocal) { map.removeLayer(normalLayer); satelliteLayer.addTo(map); }
+            else { map.removeLayer(satelliteLayer); normalLayer.addTo(map); }
+            document.getElementById('map-type-label').textContent = isSatelliteLocal ? "Normale" : "Satellitare";
         }
 
         window.toggleRulesModal = function(show) {
-            const rulesModal = document.getElementById('rules-modal');
-            if (show) {
-                rulesModal.classList.remove('modal-hidden');
-            } else {
-                rulesModal.classList.add('modal-hidden');
-            }
-            setTimeout(() => { map.invalidateSize(); }, 200);
+            document.getElementById('rules-modal').classList.toggle('modal-hidden', !show);
+            setTimeout(() => map.invalidateSize(), 200);
+        }
+
+        window.toggleDevModal = function(show) {
+            document.getElementById('dev-modal').classList.toggle('modal-hidden', !show);
+            setTimeout(() => map.invalidateSize(), 200);
         }
 
         window.controllaAdminEApri = function() {
-            const pass = prompt("Inserisci la password admin per gestire il gioco:");
-            if (pass === "pozzallo2026") {
+            if (prompt("Password admin:") === "pozzallo2026") {
                 document.getElementById('seeker-modal').classList.remove('modal-hidden');
-            } else if (pass !== null) {
-                alert("Password errata!");
+            } else {
+                alert("Errata!");
             }
         }
 
         window.controllaDevEApri = function() {
-            const pass = prompt("Inserisci la password Web Developer:");
-            if (pass === "marcodev123") {
+            if (prompt("Password Developer:") === "marcodev123") {
                 document.getElementById('seeker-modal').classList.add('modal-hidden');
-                document.getElementById('input-lat').value = baseCoords[0];
-                document.getElementById('input-lon').value = baseCoords[1];
-                document.getElementById('input-radius').value = gameRadius;
-                document.getElementById('dev-modal').classList.remove('modal-hidden');
-            } else if (pass !== null) {
+                toggleDevModal(true);
+            } else {
                 alert("Password Developer errata!");
             }
         }
 
-        window.chiudiDevModal = function() {
-            document.getElementById('dev-modal').classList.add('modal-hidden');
-            document.getElementById('seeker-modal').classList.remove('modal-hidden');
-        }
-
-        window.salvaImpostazioniDeveloper = function() {
-            const newLat = parseFloat(document.getElementById('input-lat').value);
-            const newLon = parseFloat(document.getElementById('input-lon').value);
-            const newRadius = parseInt(document.getElementById('input-radius').value);
-
-            if (isNaN(newLat) || isNaN(newLon) || isNaN(newRadius) || newRadius <= 0) {
-                alert("Inserisci valori numerici validi!");
-                return;
-            }
-
-            activeGameData.baseLat = newLat;
-            activeGameData.baseLon = newLon;
-            activeGameData.radius = newRadius;
-
-            salvaInFirebase();
-            document.getElementById('dev-modal').classList.add('modal-hidden');
-            alert("Mappa aggiornata con successo per tutti!");
-        }
-
-        window.toggleSeekerModal = function(show) {
-            document.getElementById('seeker-modal').classList.toggle('modal-hidden', !show);
-        }
-
-        window.chiudiRegoleEAvviaGPS = function() {
-            const modal = document.getElementById('rules-modal');
-            if (modal) {
-                modal.classList.add('modal-hidden');
-            }
-            setTimeout(() => {
-                map.invalidateSize();
-            }, 100);
-            avviaGPS();
-        }
-
-        window.handleSeekerKeypress = function(e) {
-            if (e.key === 'Enter') aggiungiCercatore();
-        }
-
-        window.aggiungiCercatore = function() {
-            const input = document.getElementById('seeker-name-input');
-            const name = input.value.trim();
-            if (name !== "") {
-                activeGameData.seekers.push(name);
-                input.value = "";
-                salvaInFirebase();
-            }
-        }
-
-        window.rimuoviCercatore = function(index) {
-            activeGameData.seekers.splice(index, 1);
-            salvaInFirebase();
-        }
-
-        window.avviaTimerAdmin = function() {
-            const mins = parseInt(document.getElementById('input-mins').value) || 0;
-            const secs = parseInt(document.getElementById('input-secs').value) || 0;
-            const totalMs = (mins * 60 + secs) * 1000;
+        window.disegnaRangeRettangolo = function() {
+            toggleDevModal(false);
+            alert("Modalità disegno attiva: Clicca e trascina sulla mappa per creare/aggiornare il rettangolo del range.");
             
-            if (totalMs <= 0) {
-                alert("Inserisci un tempo valido!");
-                return;
-            }
+            const drawControl = new L.Draw.Rectangle(map, {
+                shapeOptions: { color: '#38bdf8', fillColor: '#38bdf8', fillOpacity: 0.3 }
+            });
+            drawControl.enable();
 
-            activeGameData.timerEnd = Date.now() + totalMs;
-            salvaInFirebase();
-            toggleSeekerModal(false);
-            aggiornaInterfacciaTimer();
+            map.once('draw:created', function (e) {
+                drawnItems.clearLayers();
+                const layer = e.layer;
+                drawnItems.addLayer(layer);
+                
+                activeGameData.rangeCoords = layer.getLatLngs()[0];
+                salvaInFirebase();
+                alert("Range a rettangolo aggiornato e salvato con successo!");
+            });
         }
 
-        window.fermaTimerAdmin = function() {
-            activeGameData.timerEnd = 0;
+        window.cancellaRangeEditor = function() {
+            drawnItems.clearLayers();
+            activeGameData.rangeCoords = null;
             salvaInFirebase();
-            toggleSeekerModal(false);
-            aggiornaInterfacciaTimer();
+            alert("Range cancellato.");
         }
 
         function salvaInFirebase() {
-            set(ref(db, 'gameState'), activeGameData).catch((err) => {
-                console.error("Errore salvataggio Firebase:", err);
-            });
+            set(ref(db, 'gameState'), activeGameData);
         }
 
         onValue(ref(db, 'gameState'), (snapshot) => {
             const data = snapshot.val();
             if (data) {
-                activeGameData.seekers = data.seekers ? data.seekers : [];
-                activeGameData.timerEnd = data.timerEnd ? data.timerEnd : 0;
-                
-                if (data.baseLat && data.baseLon) {
-                    baseCoords = [data.baseLat, data.baseLon];
-                    baseMarker.setLatLng(baseCoords);
+                activeGameData = data;
+                if (data.rangeCoords) {
+                    drawnItems.clearLayers();
+                    const rect = L.polygon(data.rangeCoords, { color: '#38bdf8', fillColor: '#38bdf8', fillOpacity: 0.2 });
+                    drawnItems.addLayer(rect);
                 }
-                if (data.radius) {
-                    gameRadius = data.radius;
-                    gameCircle.setRadius(gameRadius);
-                }
-                gameCircle.setLatLng(baseCoords);
-            } else {
-                activeGameData = { 
-                    seekers: [], 
-                    timerEnd: 0,
-                    baseLat: baseCoords[0],
-                    baseLon: baseCoords[1],
-                    radius: gameRadius
-                };
             }
-            renderSeekers();
-            aggiornaInterfacciaTimer();
-        }, (error) => {
-            console.error("Errore lettura Firebase:", error);
         });
 
-        setInterval(() => {
-            aggiornaInterfacciaTimer();
-        }, 200);
+        window.avviaGPS = function() {
+            if ("geolocation" in navigator) {
+                const coordsElement = document.getElementById('coords');
+                coordsElement.textContent = "Ricerca GPS...";
+                if (watchId !== null) navigator.geolocation.clearWatch(watchId);
 
-        function aggiornaInterfacciaTimer() {
+                watchId = navigator.geolocation.watchPosition((pos) => {
+                    const lat = pos.coords.latitude;
+                    const lon = pos.coords.longitude;
+                    lastLatLon = [lat, lon];
+
+                    coordsElement.textContent = `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+                    coordsElement.style.color = "#10b981";
+
+                    if (!playerMarker) {
+                        playerMarker = L.marker([lat, lon], { icon: L.divIcon({ className: '', html: '🟢', iconSize: [22, 22] }) }).addTo(map);
+                    } else {
+                        playerMarker.setLatLng([lat, lon]);
+                    }
+                }, () => { coordsElement.textContent = "Segnale assente"; }, { enableHighAccuracy: true });
+            }
+        }
+
+        window.centraMappaSuMe = function() {
+            if (lastLatLon) map.setView(lastLatLon, 17);
+            else alert("GPS non ancora attivo.");
+        }
+
+        window.chiudiRegoleEAvviaGPS = function() {
+            toggleRulesModal(false);
+            avviaGPS();
+        }
+
+        window.avviaTimerAdmin = function() {
+            const mins = parseInt(document.getElementById('input-mins').value) || 0;
+            const secs = parseInt(document.getElementById('input-secs').value) || 0;
+            activeGameData.timerEnd = Date.now() + (mins * 60 + secs) * 1000;
+            salvaInFirebase();
+            document.getElementById('seeker-modal').classList.add('modal-hidden');
+        }
+
+        window.fermaTimerAdmin = function() {
+            activeGameData.timerEnd = 0;
+            salvaInFirebase();
+            document.getElementById('seeker-modal').classList.add('modal-hidden');
+        }
+
+        setInterval(() => {
             const bar = document.getElementById('global-timer-bar');
             const display = document.getElementById('timer-display');
-            
             if (!activeGameData.timerEnd || activeGameData.timerEnd <= Date.now()) {
                 bar.classList.add('hidden');
                 return;
             }
-
             bar.classList.remove('hidden');
-            const remainingSecs = Math.ceil((activeGameData.timerEnd - Date.now()) / 1000);
-            const m = Math.floor(remainingSecs / 60);
-            const s = remainingSecs % 60;
-            display.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-        }
-
-        function renderSeekers() {
-            const container = document.getElementById('seekers-container');
-            const display = document.getElementById('current-seeker-display');
-            const seekers = activeGameData.seekers;
-            
-            container.innerHTML = "";
-            if (seekers.length === 0) {
-                display.textContent = "Nessuno";
-            } else {
-                display.textContent = seekers.join(", ");
-                seekers.forEach((seeker, idx) => {
-                    const chip = document.createElement('div');
-                    chip.className = 'seeker-chip';
-                    chip.innerHTML = `${seeker} <span class="remove-btn" onclick="rimuoviCercatore(${idx})">×</span>`;
-                    container.appendChild(chip);
-                });
-            }
-        }
+            const rem = Math.ceil((activeGameData.timerEnd - Date.now()) / 1000);
+            display.textContent = `${String(Math.floor(rem/60)).padStart(2,'0')}:${String(rem%60).padStart(2,'0')}`;
+        }, 200);
     </script>
 </body>
 </html>
