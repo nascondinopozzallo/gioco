@@ -287,19 +287,6 @@
             line-height: 1.35;
         }
 
-        .creator-tag {
-            text-align: center;
-            font-size: 0.7rem;
-            color: var(--text-muted);
-            margin-bottom: 12px;
-            font-style: italic;
-        }
-
-        .creator-tag strong {
-            color: var(--accent-blue);
-            font-style: normal;
-        }
-
         .footer-note {
             text-align: center;
             color: var(--accent-blue);
@@ -506,10 +493,6 @@
             
             <div class="gps-warning-note">
                 💡 <strong>Nota GPS:</strong> Non sopravvalutare l'avviso quando ti viene chiesto di attivare la posizione; se il browser lo richiede, autorizzalo tranquillamente per vedere la tua posizione sulla mappa in real time.
-            </div>
-
-            <div class="creator-tag">
-                Ideato e sviluppato da <strong>Marco C.</strong>
             </div>
 
             <div class="footer-note">Buon divertimento!</div>
@@ -726,7 +709,6 @@
             });
         }
 
-        // Ascolta solo lo stato del gioco (chi cerca e timer) da Firebase, lasciando la mappa completamente locale
         onValue(ref(db, 'gameState'), (snapshot) => {
             const data = snapshot.val();
             if (data) {
@@ -741,7 +723,6 @@
             console.error("Errore lettura Firebase:", error);
         });
 
-        // Loop per aggiornare il conto alla rovescia sullo schermo ogni 200ms
         setInterval(() => {
             aggiornaInterfacciaTimer();
         }, 200);
