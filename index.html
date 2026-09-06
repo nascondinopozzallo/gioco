@@ -595,4 +595,126 @@
 
         window.controllaAdminEApri = function() {
             const pass = prompt("Inserisci la password admin per gestire il gioco:");
-            if (
+            if (pass === "pozzallo2026") {
+                document.getElementById('seeker-modal').classList.remove('modal-hidden');
+            } else if (pass !== null) {
+                alert("Password errata!");
+            }
+        }
+
+        window.toggleSeekerModal = function(show) {
+            document.getElementById('seeker-modal').classList.toggle('modal-hidden', !show);
+        }
+
+        window.chiudiRegoleEAvviaGPS = function() {
+            toggleRulesModal(false);
+            avviaGPS();
+        }
+
+        window.handleSeekerKeypress = function(e) {
+            if (e.key === 'Enter') aggiungiCercatore();
+        }
+
+        window.aggiungiCercatore = function() {
+            const input = document.getElementById('seeker-name-input');
+            const name = input.value.trim();
+            if (name !== "") {
+                activeSeekerData.seekers.push(name);
+                input.value = "";
+                salvaInFirebase();
+            }
+        }
+
+        window.rimuoviCercatore = function(index) {
+            activeSeekerData.seekers.splice(index, 1);
+            salvaInFirebase();
+        }
+
+        window.avviaTimerAdmin = function() {
+            const mins = parseInt(document.getElementById('input-mins').value) || 0;
+            const secs = parseInt(document.getElementById('input-secs').value) || 0;
+            const totalMs = (mins * 60 + secs) * 1000;
+            
+            if (totalMs <= 0) {
+                alert("Inserisci un tempo valido!");
+                return;
+            }
+
+            activeSeekerData.timerEnd = Date.now() + totalMs;
+            salvaInFirebase();
+            toggleSeekerModal(false);
+            aggiornaInterfacciaTimer();
+        }
+
+        window.fermaTimerAdmin = function() {
+            activeSeekerData.timerEnd = 0;
+            salvaInFirebase();
+            toggleSeekerModal(false);
+            aggiornaInterfacciaTimer();
+        }
+
+        function salvaInFirebase() {
+            set(ref(db, 'gameState'), activeSeekerData).catch((err) => {
+                console.error("Errore salvataggio Firebase:", err);
+            });
+        }
+
+        // Ascolta in tempo reale lo stato del gioco da Firebase
+        onValue(ref(db, 'gameState'), (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                activeSeekerData.seekers = data.seekers ? data.seekers : [];
+                activeSeekerData.timerEnd = data.timerEnd ? data.timerEnd : 0;
+            } else {
+                activeSeekerData = { seekers: [], timerEnd: 0 };
+            }
+            renderSeekers();
+            aggiornaInterfacciaTimer();
+        }, (error) => {
+            console.error("Errore lettura Firebase:", error);
+        });
+
+        // Loop per aggiornare il conto alla rovescia sullo schermo ogni 200ms
+        setInterval(() => {
+            aggiornaInterfacciaTimer();
+        }, 200);
+
+        function aggiornaInterfacciaTimer() {
+            const bar = document.getElementById('global-timer-bar');
+            const display = document.getElementById('timer-display');
+            
+            if (!activeSeekerData.timerEnd || activeSeekerData.timerEnd <= Date.now()) {
+                bar.classList.add('hidden');
+                return;
+            }
+
+            bar.classList.remove('hidden');
+            const remainingSecs = Math.ceil((activeSeekerData.timerEnd - Date.now()) / 1000);
+            const m = Math.floor(remainingSecs / 60);
+            const s = remainingSecs % 60;
+            display.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        }
+
+        function renderSeekers() {
+            const container = document.getElementById('seekers-container');
+            const display = document.getElementById('current-seeker-display');
+            const seekers = activeSeekerData.seekers;
+            
+            container.innerHTML = "";
+            if (seekers.length === 0) {
+                display.textContent = "Nessuno";
+            } else {
+                display.textContent = seekers.join(", ");
+                seekers.forEach((seeker, idx) => {
+                    const chip = document.createElement('div');
+                    chip.className = 'seeker-chip';
+                    chip.innerHTML = `${seeker} <span class="remove-btn" onclick="rimuoviCercatore(${idx})">×</span>`;
+                    container.appendChild(chip);
+                });
+            }
+        }
+
+        avviaGPS();
+    </script>
+</body>
+</html>
