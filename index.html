@@ -328,6 +328,10 @@
     <div id="seeker-modal" class="modal-overlay modal-hidden">
         <div class="modal-content">
             <h2>🕵️ GESTISCI GIOCO</h2>
+            <div class="admin-section-title">👥 Chi Cerca</div>
+            <input type="text" id="input-seekers" placeholder="Es. Mario, Luca" style="width:100%; padding:8px; background:rgba(255,255,255,0.05); border:1px solid var(--border-color); color:white; border-radius:8px; margin-bottom:8px;">
+            <button class="btn-timer-ctrl btn-start-timer" onclick="aggiornaChiCerca()">💾 Salva Chi Cerca</button>
+
             <div class="admin-section-title">⏱️ Gestione Timer</div>
             <div style="display: flex; gap: 8px; margin-bottom: 8px;">
                 <input type="number" id="input-mins" value="2" min="0" max="60" style="flex:1; padding:8px; background:rgba(255,255,255,0.05); border:1px solid var(--border-color); color:white; border-radius:8px; text-align:center;">
@@ -405,7 +409,7 @@
         let playerMarker = null;
         let lastLatLon = null;
         let watchId = null;
-        let activeGameData = { seekers: [], timerEnd: 0, rangeCoords: null };
+        let activeGameData = { seekers: "Nessuno", timerEnd: 0, rangeCoords: null };
 
         window.toggleMapTypeLocal = function() {
             isSatelliteLocal = !isSatelliteLocal;
@@ -440,6 +444,13 @@
             } else {
                 alert("Password Developer errata!");
             }
+        }
+
+        window.aggiornaChiCerca = function() {
+            const val = document.getElementById('input-seekers').value.trim();
+            activeGameData.seekers = val !== "" ? val : "Nessuno";
+            salvaInFirebase();
+            document.getElementById('seeker-modal').classList.add('modal-hidden');
         }
 
         window.disegnaRangeRettangolo = function() {
@@ -477,6 +488,9 @@
             const data = snapshot.val();
             if (data) {
                 activeGameData = data;
+                if (data.seekers) {
+                    document.getElementById('current-seeker-display').textContent = data.seekers;
+                }
                 if (data.rangeCoords) {
                     drawnItems.clearLayers();
                     const rect = L.polygon(data.rangeCoords, { color: '#38bdf8', fillColor: '#38bdf8', fillOpacity: 0.2 });
