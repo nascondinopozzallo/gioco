@@ -3,20 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Nascondino Pozzallo</title>
+    <title>Nascondino Pozzallo - Editor Libero & Ore & Seeker</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <!-- Leaflet Draw Plugin per il disegno libero a pennello/poligono -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"/>
     
     <style>
         :root {
-            --bg-main: #090d16;
-            --bg-card: #131c31;
-            --border-color: #1e293b;
+            --bg-main: #050811;
+            --bg-card: #0f172a;
+            --bg-glass: rgba(15, 23, 42, 0.75);
+            --border-color: rgba(56, 189, 248, 0.15);
+            --border-glow: rgba(56, 189, 248, 0.4);
             --accent-green: #10b981;
             --accent-red: #f43f5e;
             --accent-blue: #38bdf8;
+            --accent-purple: #8b5cf6;
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
+            --shadow-neon: 0 0 25px rgba(56, 189, 248, 0.15);
+            --transition-smooth: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         * {
@@ -43,60 +49,65 @@
         }
 
         header {
-            background: linear-gradient(135deg, #131c31, #1e293b);
-            padding: 10px 14px;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            padding: 12px 18px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: 0 4px 25px rgba(0, 0, 0, 0.6);
             z-index: 10;
             flex-shrink: 0;
         }
 
         h1 {
-            font-size: 0.9rem;
+            font-size: 1rem;
             color: var(--accent-blue);
-            font-weight: 700;
-            letter-spacing: -0.3px;
+            font-weight: 800;
+            letter-spacing: -0.4px;
+            text-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
         }
 
         .header-actions {
             display: flex;
-            gap: 6px;
+            gap: 8px;
         }
 
         .btn-action {
             color: white;
             border: none;
-            padding: 6px 10px;
-            border-radius: 8px;
-            font-size: 0.75rem;
+            padding: 7px 12px;
+            border-radius: 10px;
+            font-size: 0.78rem;
             font-weight: 700;
             cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-            transition: transform 0.1s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            transition: var(--transition-smooth);
         }
 
-        .btn-action:active { transform: scale(0.95); }
-        .btn-rules { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+        .btn-action:active { transform: scale(0.94); }
+        .btn-rules { 
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            border: 1px solid rgba(59, 130, 246, 0.4);
+        }
 
         .status-bar {
             background-color: var(--bg-card);
-            padding: 8px 14px;
+            padding: 9px 18px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid var(--border-color);
-            font-size: 0.75rem;
+            font-size: 0.78rem;
             z-index: 10;
             flex-shrink: 0;
+            backdrop-filter: blur(10px);
         }
 
         .status-item {
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 6px;
             color: var(--text-muted);
         }
 
@@ -106,39 +117,43 @@
         }
 
         .btn-gps-retry {
-            background: rgba(56, 189, 248, 0.15);
+            background: rgba(56, 189, 248, 0.12);
             border: 1px solid var(--accent-blue);
             color: var(--accent-blue);
-            padding: 3px 6px;
+            padding: 3px 8px;
             border-radius: 6px;
-            font-size: 0.7rem;
-            font-weight: 600;
+            font-size: 0.72rem;
+            font-weight: 700;
             cursor: pointer;
-            margin-left: 4px;
+            transition: var(--transition-smooth);
         }
+        .btn-gps-retry:hover { background: rgba(56, 189, 248, 0.25); }
 
         .timer-bar {
             background: linear-gradient(135deg, #1e1b4b, #31103f);
             border-bottom: 1px solid rgba(244, 63, 94, 0.3);
-            padding: 6px 14px;
+            padding: 8px 18px;
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 10px;
-            font-size: 0.85rem;
+            gap: 12px;
+            font-size: 0.88rem;
             font-weight: 700;
             color: #fca5a5;
             z-index: 10;
             flex-shrink: 0;
+            box-shadow: inset 0 0 20px rgba(244, 63, 94, 0.1);
         }
         .timer-bar.hidden { display: none !important; }
+        
         #timer-display {
-            font-size: 1rem;
+            font-size: 1.05rem;
             color: #ffffff;
-            background: rgba(0,0,0,0.3);
-            padding: 2px 8px;
-            border-radius: 6px;
-            letter-spacing: 1px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(244, 63, 94, 0.3);
+            padding: 2px 10px;
+            border-radius: 8px;
+            letter-spacing: 1.2px;
         }
 
         #map {
@@ -151,71 +166,86 @@
 
         .map-type-toggle {
             position: absolute;
-            top: 115px;
-            right: 12px;
-            background: var(--bg-card);
+            top: 125px;
+            right: 16px;
+            background: var(--bg-glass);
+            backdrop-filter: blur(12px);
             border: 1px solid var(--border-color);
             color: white;
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-size: 0.75rem;
+            padding: 8px 14px;
+            border-radius: 12px;
+            font-size: 0.78rem;
             font-weight: 700;
             cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            box-shadow: var(--shadow-neon);
             z-index: 998;
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 6px;
+            transition: var(--transition-smooth);
         }
-        .map-type-toggle:active { transform: scale(0.95); }
+        .map-type-toggle:hover { border-color: var(--accent-blue); background: var(--bg-card); }
+        .map-type-toggle:active { transform: scale(0.94); }
 
         .btn-center-map {
             position: absolute;
-            bottom: 35px;
-            right: 16px;
-            background: var(--bg-card);
+            bottom: 40px;
+            right: 18px;
+            background: var(--bg-glass);
+            backdrop-filter: blur(12px);
             border: 1px solid var(--accent-blue);
             color: var(--accent-blue);
-            width: 44px;
-            height: 44px;
+            width: 48px;
+            height: 48px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.2rem;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            font-size: 1.3rem;
+            box-shadow: 0 4px 20px rgba(56, 189, 248, 0.3);
             cursor: pointer;
             z-index: 998;
+            transition: var(--transition-smooth);
         }
+        .btn-center-map:hover { background: var(--accent-blue); color: var(--bg-main); transform: scale(1.05); }
+        .btn-center-map:active { transform: scale(0.9); }
 
         .btn-secret-admin {
             position: absolute;
-            bottom: 35px;
-            left: 14px;
-            background: rgba(19, 28, 49, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: rgba(255, 255, 255, 0.3);
-            width: 28px;
-            height: 28px;
+            bottom: 40px;
+            left: 18px;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: rgba(255, 255, 255, 0.4);
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.7rem;
+            font-size: 0.75rem;
             cursor: pointer;
             z-index: 998;
+            transition: var(--transition-smooth);
         }
-        .btn-secret-admin:hover { color: var(--accent-red); border-color: var(--accent-red); }
+        .btn-secret-admin:hover, .btn-secret-admin:active {
+            color: var(--accent-red);
+            border-color: var(--accent-red);
+            background: var(--bg-card);
+            transform: scale(1.1);
+        }
 
         .watermark {
             position: absolute;
-            bottom: 8px;
-            left: 14px;
-            font-size: 0.65rem;
-            color: rgba(255, 255, 255, 0.35);
+            bottom: 10px;
+            left: 18px;
+            font-size: 0.68rem;
+            color: rgba(255, 255, 255, 0.3);
             z-index: 999;
             pointer-events: none;
-            font-weight: 500;
+            font-weight: 600;
+            letter-spacing: 0.8px;
         }
 
         .modal-overlay {
@@ -225,70 +255,167 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(5, 8, 15, 0.85);
-            backdrop-filter: blur(8px);
+            background-color: rgba(3, 6, 14, 0.85);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
             z-index: 9999;
             justify-content: center;
             align-items: center;
-            padding: 12px;
+            padding: 14px;
+            animation: fadeInModal 0.3s ease forwards;
         }
+
         .modal-hidden { display: none !important; }
 
+        @keyframes fadeInModal {
+            from { opacity: 0; transform: scale(0.96); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
         .modal-content {
-            background-color: var(--bg-card);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 18px;
-            padding: 18px;
+            background: linear-gradient(160deg, #131c31 0%, #090d16 100%);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 22px;
             width: 100%;
-            max-width: 400px;
-            max-height: 85vh;
+            max-width: 420px;
+            max-height: 88vh;
             overflow-y: auto;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7), 0 0 30px rgba(56, 189, 248, 0.08);
+            -webkit-overflow-scrolling: touch;
         }
 
         .modal-content h2 {
-            color: var(--accent-red);
-            margin-bottom: 12px;
-            font-size: 1.05rem;
+            color: var(--accent-blue);
+            margin-bottom: 14px;
+            font-size: 1.15rem;
             text-align: center;
+            letter-spacing: -0.4px;
+            text-shadow: 0 0 12px rgba(56, 189, 248, 0.25);
+        }
+
+        .rules-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .rule-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-left: 3px solid var(--accent-blue);
+            padding: 10px 12px;
+            border-radius: 0 10px 10px 0;
+            font-size: 0.82rem;
+            color: #cbd5e1;
+            line-height: 1.45;
+            transition: var(--transition-smooth);
+        }
+        .rule-card:hover { background: rgba(255, 255, 255, 0.05); border-color: rgba(56, 189, 248, 0.2); }
+        .rule-card strong { color: var(--text-main); }
+
+        .gps-warning-note {
+            background: rgba(244, 63, 94, 0.08);
+            border: 1px solid rgba(244, 63, 94, 0.2);
+            border-left: 3px solid var(--accent-red);
+            padding: 10px 12px;
+            border-radius: 0 10px 10px 0;
+            font-size: 0.78rem;
+            color: #fca5a5;
+            margin-bottom: 16px;
+            line-height: 1.4;
+        }
+
+        .footer-note {
+            text-align: center;
+            color: var(--accent-green);
+            font-weight: 700;
+            font-size: 0.88rem;
+            margin-bottom: 16px;
+            letter-spacing: -0.2px;
         }
 
         .btn-close {
             width: 100%;
-            padding: 12px;
-            background: linear-gradient(135deg, var(--accent-green), #059669);
+            padding: 13px;
+            background: linear-gradient(135deg, var(--accent-green), #047857);
             color: white;
             border: none;
             border-radius: 12px;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             font-weight: 700;
             cursor: pointer;
-            margin-top: 10px;
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35);
+            transition: var(--transition-smooth);
         }
+        .btn-close:hover { opacity: 0.95; transform: translateY(-1px); }
+        .btn-close:active { transform: scale(0.97); }
 
         .admin-section-title {
             font-size: 0.85rem;
             color: var(--accent-blue);
-            margin: 14px 0 6px 0;
+            margin: 16px 0 8px 0;
             font-weight: 700;
             border-top: 1px solid var(--border-color);
-            padding-top: 10px;
+            padding-top: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .timer-inputs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .timer-inputs div {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .timer-inputs input, .dev-input-custom, .admin-text-input {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-color);
+            padding: 10px 8px;
+            border-radius: 10px;
+            color: white;
+            font-size: 0.9rem;
+            text-align: center;
+            outline: none;
+            transition: var(--transition-smooth);
+            width: 100%;
+        }
+        .timer-inputs input:focus, .dev-input-custom:focus, .admin-text-input:focus {
+            border-color: var(--accent-blue);
+            background: rgba(255, 255, 255, 0.07);
+            box-shadow: 0 0 12px rgba(56, 189, 248, 0.2);
         }
 
         .btn-timer-ctrl {
             width: 100%;
-            padding: 10px;
+            padding: 11px;
             border-radius: 10px;
             border: none;
             font-weight: 700;
-            font-size: 0.8rem;
+            font-size: 0.82rem;
             cursor: pointer;
-            margin-bottom: 6px;
+            margin-bottom: 8px;
+            transition: var(--transition-smooth);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
         .btn-start-timer { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; }
-        .btn-stop-timer { background: rgba(244, 63, 94, 0.2); border: 1px solid var(--accent-red); color: #fca5a5; }
-        .btn-dev-access { background: linear-gradient(135deg, #8b5cf6, #6d28d9); color: white; }
-        .btn-editor-mode { background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; }
+        .btn-stop-timer { background: rgba(244, 63, 94, 0.15); border: 1px solid var(--accent-red); color: #fca5a5; }
+        .btn-dev-access { background: linear-gradient(135deg, var(--accent-purple), #5b21b6); color: white; margin-top: 12px; }
+        .btn-draw-mode { background: linear-gradient(135deg, var(--accent-green), #047857); color: white; }
+        .btn-draw-mode:hover { filter: brightness(1.1); }
     </style>
 </head>
 <body>
@@ -310,7 +437,7 @@
 
     <div id="global-timer-bar" class="timer-bar hidden">
         <span>⏳ Tempo rimanente:</span>
-        <span id="timer-display">00:00</span>
+        <span id="timer-display">00:00:00</span>
     </div>
 
     <div id="map"></div>
@@ -328,47 +455,77 @@
     <div id="seeker-modal" class="modal-overlay modal-hidden">
         <div class="modal-content">
             <h2>🕵️ GESTISCI GIOCO</h2>
-            <div class="admin-section-title">👥 Chi Cerca</div>
-            <input type="text" id="input-seekers" placeholder="Es. Mario, Luca" style="width:100%; padding:8px; background:rgba(255,255,255,0.05); border:1px solid var(--border-color); color:white; border-radius:8px; margin-bottom:8px;">
-            <button class="btn-timer-ctrl btn-start-timer" onclick="aggiornaChiCerca()">💾 Salva Chi Cerca</button>
-
-            <div class="admin-section-title">⏱️ Gestione Timer</div>
-            <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-                <input type="number" id="input-mins" value="2" min="0" max="60" style="flex:1; padding:8px; background:rgba(255,255,255,0.05); border:1px solid var(--border-color); color:white; border-radius:8px; text-align:center;">
-                <input type="number" id="input-secs" value="0" min="0" max="59" style="flex:1; padding:8px; background:rgba(255,255,255,0.05); border:1px solid var(--border-color); color:white; border-radius:8px; text-align:center;">
+            
+            <div class="admin-section-title">🕵️ Chi Cerca</div>
+            <div style="margin-bottom: 12px;">
+                <input type="text" id="input-seeker-name" class="admin-text-input" placeholder="Scrivi chi cerca (es. Marco o Squadra A)">
+                <button class="btn-timer-ctrl btn-start-timer" style="margin-top: 8px;" onclick="salvaSeekerAdmin()">💾 AGGIORNA CHI CERCA</button>
             </div>
-            <button class="btn-timer-ctrl btn-start-timer" onclick="avviaTimerAdmin()">▶️ AVVIA TIMER</button>
-            <button class="btn-timer-ctrl btn-stop-timer" onclick="fermaTimerAdmin()">⏹️ AZZERA TIMER</button>
-            
-            <button class="btn-timer-ctrl btn-dev-access" onclick="controllaDevEApri()">🛠️ Portale Web Developer</button>
-            
-            <button class="btn-close" onclick="document.getElementById('seeker-modal').classList.add('modal-hidden');">CHIUDI</button>
+
+            <div class="admin-section-title">⏱️ Gestione Timer (Ore, Minuti, Secondi)</div>
+            <div class="timer-inputs">
+                <div>
+                    <label>Ore</label>
+                    <input type="number" id="input-hours" value="0" min="0" max="24">
+                </div>
+                <div>
+                    <label>Minuti</label>
+                    <input type="number" id="input-mins" value="32" min="0" max="59">
+                </div>
+                <div>
+                    <label>Secondi</label>
+                    <input type="number" id="input-secs" value="0" min="0" max="59">
+                </div>
+            </div>
+            <button class="btn-timer-ctrl btn-start-timer" onclick="avviaTimerAdmin()">▶️ AVVIA TIMER PER TUTTI</button>
+            <button class="btn-timer-ctrl btn-stop-timer" onclick="fermaTimerAdmin()">⏹️ AZZERA / CHIUDI TIMER</button>
+
+            <button class="btn-timer-ctrl btn-dev-access" onclick="controllaDevEApri()">🛠️ Pannello Web Developer</button>
+
+            <div style="margin-top: 16px;">
+                <button class="btn-close" onclick="toggleSeekerModal(false)">SALVA E CHIUDI</button>
+            </div>
         </div>
     </div>
 
-    <!-- MODALE PORTALE WEB DEVELOPER -->
+    <!-- MODALE WEB DEVELOPER - DISEGNO LIBERO A PENNELLO -->
     <div id="dev-modal" class="modal-overlay modal-hidden">
         <div class="modal-content">
-            <h2 style="color: var(--accent-blue);">🛠️ WEB DEVELOPER</h2>
-            <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 12px;">Disegna liberamente il perimetro dell'area di gioco toccando i punti sulla mappa.</p>
+            <h2 style="color: var(--accent-blue);">🛠️ WEB DEVELOPER PANEL</h2>
+            <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 14px;">Disegna liberamente a mano i confini dell'area di gioco cliccando punti sulla mappa.</p>
 
-            <button class="btn-timer-ctrl btn-editor-mode" onclick="disegnaAreaLibera()">✏️ Disegna / Aggiorna Area Libera</button>
-            <button class="btn-timer-ctrl btn-stop-timer" onclick="cancellaRangeEditor()">🗑️ Cancella Area</button>
+            <button class="btn-timer-ctrl btn-draw-mode" onclick="attivaDisegnoPoligono()">✏️ DISEGNA AREA PERSONALIZZATA</button>
+            <button class="btn-timer-ctrl btn-stop-timer" onclick="pulisciAreaDisegnata()">🗑️ CANCELLA AREA CORRENTE</button>
 
-            <button class="btn-close" onclick="toggleDevModal(false)">ESCI</button>
+            <button class="btn-timer-ctrl btn-stop-timer" onclick="chiudiDevModal()" style="margin-top: 12px;">↩️ Indietro</button>
         </div>
     </div>
 
-    <!-- MODALE REGOLE -->
+    <!-- MODALE REGOLE MODERNO E UNIFORMATO -->
     <div id="rules-modal" class="modal-overlay">
         <div class="modal-content">
-            <h2>‼️ 🚨 REGOLE 🚨 ‼️</h2>
-            <ol>
-                <li>Si conta o a tre a tre o 4 a 4.</li>
-                <li>Non c’é tana.</li>
-                <li>Ci sono 32 minuti totali.</li>
-                <li>Si fa dalla porto salvo al delfino cioè dentro la villa.</li>
-            </ol>
+            <h2>‼️ 🚨 REGOLE UFFICIALI 🚨 ‼️</h2>
+            
+            <div class="rules-container">
+                <div class="rule-card">
+                    1. <strong>Modalità di Conto:</strong> Si conta a blocchi da tre o quattro giocatori (possibile unire gruppi misti, es. femmine e maschi insieme).
+                </div>
+                <div class="rule-card">
+                    2. <strong>Niente Tana:</strong> Le regole di fine corsa non prevedono la classica tana fissa.
+                </div>
+                <div class="rule-card">
+                    3. <strong>Meccaniche di Gioco:</strong> Il <em>bump</em> è pienamente attivo, con possibilità di impostare varianti come <em>ghost</em> ed altre opzioni.
+                </div>
+                <div class="rule-card">
+                    4. <strong>Area di Gioco:</strong> Il perimetro si estende da "Porto Salvo" fino al Delfino, interamente all'interno della villa.
+                </div>
+            </div>
+            
+            <div class="gps-warning-note">
+                💡 <strong>Nota GPS:</strong> Consenti l'accesso alla geolocalizzazione quando richiesto dal browser per visualizzare in tempo reale la tua posizione esatta rispetto ai confini disegnati.
+            </div>
+
+            <div class="footer-note">Pronti per stasera? Buon divertimento!</div>
             <button class="btn-close" onclick="chiudiRegoleEAvviaGPS()">HO LETTO, VAI ALLA MAPPA</button>
         </div>
     </div>
@@ -406,26 +563,33 @@
         let drawnItems = new L.FeatureGroup();
         map.addLayer(drawnItems);
 
+        let currentPolygonCoords = [];
         let playerMarker = null;
         let lastLatLon = null;
+        const coordsElement = document.getElementById('coords');
         let watchId = null;
-        let activeGameData = { seekers: "Nessuno", timerEnd: 0, rangeCoords: null };
+
+        let activeGameData = { 
+            seeker: "Nessuno", 
+            timerEnd: 0,
+            polygonCoords: []
+        };
 
         window.toggleMapTypeLocal = function() {
             isSatelliteLocal = !isSatelliteLocal;
             localStorage.setItem('map_satellite', isSatelliteLocal);
-            if (isSatelliteLocal) { map.removeLayer(normalLayer); satelliteLayer.addTo(map); }
-            else { map.removeLayer(satelliteLayer); normalLayer.addTo(map); }
+            if (isSatelliteLocal) {
+                map.removeLayer(normalLayer);
+                satelliteLayer.addTo(map);
+            } else {
+                map.removeLayer(satelliteLayer);
+                normalLayer.addTo(map);
+            }
             document.getElementById('map-type-label').textContent = isSatelliteLocal ? "Normale" : "Satellitare";
         }
 
         window.toggleRulesModal = function(show) {
             document.getElementById('rules-modal').classList.toggle('modal-hidden', !show);
-            setTimeout(() => map.invalidateSize(), 200);
-        }
-
-        window.toggleDevModal = function(show) {
-            document.getElementById('dev-modal').classList.toggle('modal-hidden', !show);
             setTimeout(() => map.invalidateSize(), 200);
         }
 
@@ -438,46 +602,141 @@
         }
 
         window.controllaDevEApri = function() {
-            if (prompt("Password Developer:") === "marcodev123") {
+            if (prompt("Password Web Developer:") === "marcodev123") {
                 document.getElementById('seeker-modal').classList.add('modal-hidden');
-                toggleDevModal(true);
+                document.getElementById('dev-modal').classList.remove('modal-hidden');
             } else {
                 alert("Password Developer errata!");
             }
         }
 
-        window.aggiornaChiCerca = function() {
-            const val = document.getElementById('input-seekers').value.trim();
-            activeGameData.seekers = val !== "" ? val : "Nessuno";
-            salvaInFirebase();
-            document.getElementById('seeker-modal').classList.add('modal-hidden');
+        window.chiudiDevModal = function() {
+            document.getElementById('dev-modal').classList.add('modal-hidden');
+            document.getElementById('seeker-modal').classList.remove('modal-hidden');
         }
 
-        window.disegnaAreaLibera = function() {
-            toggleDevModal(false);
-            alert("Modalità disegno libero attiva: Tocca punti multipli sulla mappa per tracciare l'area. Clicca sul primo punto per chiudere la forma.");
-            
+        // --- SALVA CHI CERCA DAL PANNELLO ADMIN ---
+        window.salvaSeekerAdmin = function() {
+            const seekerName = document.getElementById('input-seeker-name').value.trim();
+            if (seekerName !== "") {
+                activeGameData.seeker = seekerName;
+                salvaInFirebase();
+                alert("Chi cerca aggiornato con successo!");
+            } else {
+                alert("Inserisci un nome valido.");
+            }
+        }
+
+        // --- ATTIVA DISEGNO LIBERO A PENNELLO/POLIGONO ---
+        window.attivaDisegnoPoligono = function() {
+            document.getElementById('dev-modal').classList.add('modal-hidden');
+            alert("Modalità Pennello attiva: Clicca sulla mappa i vari punti per tracciare il perimetro. Doppio clic per chiudere la forma.");
+
             const drawControl = new L.Draw.Polygon(map, {
-                shapeOptions: { color: '#38bdf8', fillColor: '#38bdf8', fillOpacity: 0.3 }
+                shapeOptions: { color: '#10b981', fillColor: '#10b981', fillOpacity: 0.25, weight: 3 }
             });
             drawControl.enable();
 
             map.once('draw:created', function (e) {
-                drawnItems.clearLayers();
                 const layer = e.layer;
+                drawnItems.clearLayers();
                 drawnItems.addLayer(layer);
                 
-                activeGameData.rangeCoords = layer.getLatLngs()[0];
+                currentPolygonCoords = layer.getLatLngs()[0].map(pt => [pt.lat, pt.lng]);
+                activeGameData.polygonCoords = currentPolygonCoords;
                 salvaInFirebase();
-                alert("Area di gioco personalizzata salvata con successo!");
+                alert("Area personalizzata disegnata e salvata con successo per tutti!");
             });
         }
 
-        window.cancellaRangeEditor = function() {
+        window.pulisciAreaDisegnata = function() {
             drawnItems.clearLayers();
-            activeGameData.rangeCoords = null;
+            currentPolygonCoords = [];
+            activeGameData.polygonCoords = [];
             salvaInFirebase();
-            alert("Area cancellata.");
+            alert("Area personalizzata eliminata.");
+        }
+
+        window.avviaGPS = function() {
+            if ("geolocation" in navigator) {
+                coordsElement.textContent = "Ricerca...";
+                if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+
+                watchId = navigator.geolocation.watchPosition((pos) => {
+                    const lat = pos.coords.latitude;
+                    const lon = pos.coords.longitude;
+                    lastLatLon = [lat, lon];
+
+                    let isInside = true;
+                    if (currentPolygonCoords.length > 2) {
+                        isInside = isPointInPolygon([lat, lon], currentPolygonCoords);
+                    }
+
+                    if (!isInside) {
+                        coordsElement.textContent = "Fuori Zona";
+                        coordsElement.style.color = "#ef4444";
+                    } else {
+                        coordsElement.textContent = `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+                        coordsElement.style.color = "#10b981";
+                    }
+
+                    if (!playerMarker) {
+                        playerMarker = L.marker([lat, lon], {
+                            icon: L.divIcon({ className: '', html: '🟢', iconSize: [22, 22] })
+                        }).addTo(map);
+                    } else {
+                        playerMarker.setLatLng([lat, lon]);
+                    }
+                }, () => { coordsElement.textContent = "Segnale assente"; }, { enableHighAccuracy: true });
+            }
+        }
+
+        function isPointInPolygon(point, vs) {
+            let x = point[0], y = point[1];
+            let inside = false;
+            for (let i = 0, j = vs.length - 1; i < vs.length; j = i++) {
+                let xi = vs[i][0], yi = vs[i][1];
+                let xj = vs[j][0], yj = vs[j][1];
+                let intersect = ((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+                if (intersect) inside = !inside;
+            }
+            return inside;
+        }
+
+        window.centraMappaSuMe = function() {
+            if (lastLatLon) map.setView(lastLatLon, 17);
+            else alert("GPS non ancora attivo.");
+        }
+
+        window.toggleSeekerModal = function(show) {
+            document.getElementById('seeker-modal').classList.toggle('modal-hidden', !show);
+        }
+
+        window.chiudiRegoleEAvviaGPS = function() {
+            toggleRulesModal(false);
+            avviaGPS();
+        }
+
+        window.avviaTimerAdmin = function() {
+            const hours = parseInt(document.getElementById('input-hours').value) || 0;
+            const mins = parseInt(document.getElementById('input-mins').value) || 0;
+            const secs = parseInt(document.getElementById('input-secs').value) || 0;
+            const totalMs = (hours * 3600 + mins * 60 + secs) * 1000;
+            
+            if (totalMs <= 0) {
+                alert("Inserisci un tempo valido!");
+                return;
+            }
+
+            activeGameData.timerEnd = Date.now() + totalMs;
+            salvaInFirebase();
+            toggleSeekerModal(false);
+        }
+
+        window.fermaTimerAdmin = function() {
+            activeGameData.timerEnd = 0;
+            salvaInFirebase();
+            toggleSeekerModal(false);
         }
 
         function salvaInFirebase() {
@@ -488,63 +747,21 @@
             const data = snapshot.val();
             if (data) {
                 activeGameData = data;
-                if (data.seekers) {
-                    document.getElementById('current-seeker-display').textContent = data.seekers;
+                if (data.timerEnd) activeGameData.timerEnd = data.timerEnd;
+                
+                if (data.seeker) {
+                    document.getElementById('current-seeker-display').textContent = data.seeker;
+                    document.getElementById('input-seeker-name').value = data.seeker;
                 }
-                if (data.rangeCoords) {
+
+                if (data.polygonCoords && data.polygonCoords.length > 0) {
+                    currentPolygonCoords = data.polygonCoords;
                     drawnItems.clearLayers();
-                    const poly = L.polygon(data.rangeCoords, { color: '#38bdf8', fillColor: '#38bdf8', fillOpacity: 0.2 });
-                    drawnItems.addLayer(poly);
+                    const polygon = L.polygon(currentPolygonCoords, { color: '#10b981', fillColor: '#10b981', fillOpacity: 0.25, weight: 3 });
+                    drawnItems.addLayer(polygon);
                 }
             }
         });
-
-        window.avviaGPS = function() {
-            if ("geolocation" in navigator) {
-                const coordsElement = document.getElementById('coords');
-                coordsElement.textContent = "Ricerca GPS...";
-                if (watchId !== null) navigator.geolocation.clearWatch(watchId);
-
-                watchId = navigator.geolocation.watchPosition((pos) => {
-                    const lat = pos.coords.latitude;
-                    const lon = pos.coords.longitude;
-                    lastLatLon = [lat, lon];
-
-                    coordsElement.textContent = `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
-                    coordsElement.style.color = "#10b981";
-
-                    if (!playerMarker) {
-                        playerMarker = L.marker([lat, lon], { icon: L.divIcon({ className: '', html: '🟢', iconSize: [22, 22] }) }).addTo(map);
-                    } else {
-                        playerMarker.setLatLng([lat, lon]);
-                    }
-                }, () => { coordsElement.textContent = "Segnale assente"; }, { enableHighAccuracy: true });
-            }
-        }
-
-        window.centraMappaSuMe = function() {
-            if (lastLatLon) map.setView(lastLatLon, 17);
-            else alert("GPS non ancora attivo.");
-        }
-
-        window.chiudiRegoleEAvviaGPS = function() {
-            toggleRulesModal(false);
-            avviaGPS();
-        }
-
-        window.avviaTimerAdmin = function() {
-            const mins = parseInt(document.getElementById('input-mins').value) || 0;
-            const secs = parseInt(document.getElementById('input-secs').value) || 0;
-            activeGameData.timerEnd = Date.now() + (mins * 60 + secs) * 1000;
-            salvaInFirebase();
-            document.getElementById('seeker-modal').classList.add('modal-hidden');
-        }
-
-        window.fermaTimerAdmin = function() {
-            activeGameData.timerEnd = 0;
-            salvaInFirebase();
-            document.getElementById('seeker-modal').classList.add('modal-hidden');
-        }
 
         setInterval(() => {
             const bar = document.getElementById('global-timer-bar');
@@ -554,8 +771,11 @@
                 return;
             }
             bar.classList.remove('hidden');
-            const rem = Math.ceil((activeGameData.timerEnd - Date.now()) / 1000);
-            display.textContent = `${String(Math.floor(rem/60)).padStart(2,'0')}:${String(rem%60).padStart(2,'0')}`;
+            const remSecs = Math.ceil((activeGameData.timerEnd - Date.now()) / 1000);
+            const h = Math.floor(remSecs / 3600);
+            const m = Math.floor((remSecs % 3600) / 60);
+            const s = remSecs % 60;
+            display.textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
         }, 200);
     </script>
 </body>
