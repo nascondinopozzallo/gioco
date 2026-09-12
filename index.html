@@ -41,7 +41,6 @@
             color: var(--text-main);
             overflow: hidden;
             position: fixed;
-            /* Correzione sicura per barra inferiore e notch di Safari iOS su tutti i modelli */
             padding-bottom: env(safe-area-inset-bottom);
             padding-top: env(safe-area-inset-top);
         }
@@ -209,7 +208,6 @@
         .btn-center-map:hover { background: var(--accent-blue); color: var(--bg-main); transform: scale(1.05); }
         .btn-center-map:active { transform: scale(0.9); }
 
-        /* PULSANTE ADMIN E PULSANTE CARTINA AFFIANCATI IN BASSO A SINISTRA (Stessa altezza, stessa dimensione) */
         .btn-secret-admin {
             position: absolute;
             bottom: calc(40px + env(safe-area-inset-bottom));
@@ -240,7 +238,7 @@
         .btn-map-toggle-icon {
             position: absolute;
             bottom: calc(40px + env(safe-area-inset-bottom));
-            left: 68px; /* Accanto al pulsante admin */
+            left: 68px;
             background: rgba(15, 23, 42, 0.85);
             backdrop-filter: blur(8px);
             border: 1px solid rgba(56, 189, 248, 0.3);
@@ -441,6 +439,44 @@
         .btn-draw-mode { background: linear-gradient(135deg, var(--accent-green), #047857); color: white; }
         .btn-draw-mode:hover { filter: brightness(1.1); }
         
+        .btn-register-device {
+            background: linear-gradient(135deg, #0284c7, #0369a1);
+            color: white;
+            margin-top: 8px;
+        }
+        .register-option-card {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-color);
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .register-option-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+        .register-option-header label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+        .register-badge {
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+        .badge-active { background: rgba(16, 185, 129, 0.2); color: var(--accent-green); border: 1px solid rgba(16, 185, 129, 0.4); }
+        .badge-inactive { background: rgba(244, 63, 94, 0.2); color: var(--accent-red); border: 1px solid rgba(244, 63, 94, 0.4); }
+
         .help-icon {
             cursor: pointer;
             background: rgba(56, 189, 248, 0.2);
@@ -479,14 +515,12 @@
         <span id="timer-display">00:00:00</span>
     </div>
 
-    <!-- BARRA MESSAGGIO ADMIN VISIBILE SUL SITO -->
     <div id="admin-custom-bar" class="admin-announcement-bar hidden">
         <span id="admin-custom-text-display">Messaggio Admin</span>
     </div>
 
     <div id="map"></div>
 
-    <!-- NUOVA ICONA CARTINA COMPATTA IN BASSO A SINISTRA ACCANTO ALL'ADMIN -->
     <button class="btn-map-toggle-icon" onclick="toggleMapTypeLocal()" title="Cambia vista mappa (Normale/Satellitare)">
         🗺️
     </button>
@@ -507,7 +541,6 @@
                 <button class="btn-timer-ctrl btn-start-timer" style="margin-top: 8px;" onclick="salvaSeekerAdmin()">💾 AGGIORNA CHI CERCA</button>
             </div>
 
-            <!-- SEZIONE ANNUNCIO PERSONALIZZATO -->
             <div class="admin-section-title">
                 📢 Annuncio Personalizzato Sotto il Timer 
                 <span class="help-icon" onclick="mostraAiutoAnnuncio()">?</span>
@@ -543,13 +576,19 @@
 
             <button class="btn-timer-ctrl btn-dev-access" onclick="controllaDevEApri()">🛠️ Pannello Web Developer</button>
 
+            <div class="admin-section-title">
+                📱 Configurazione Dispositivo 
+                <span class="help-icon" onclick="mostraAiutoRegistrazione()">?</span>
+            </div>
+            <button class="btn-timer-ctrl btn-register-device" onclick="apriModalRegistrazione()">🔑 Registra Dispositivo</button>
+
             <div style="margin-top: 16px;">
                 <button class="btn-close" onclick="toggleSeekerModal(false)">SALVA E CHIUDI</button>
             </div>
         </div>
     </div>
 
-    <!-- MODALE WEB DEVELOPER - DISEGNO LIBERO A PENNELLO -->
+    <!-- MODALE WEB DEVELOPER -->
     <div id="dev-modal" class="modal-overlay modal-hidden">
         <div class="modal-content">
             <h2 style="color: var(--accent-blue);">🛠️ WEB DEVELOPER PANEL</h2>
@@ -562,7 +601,39 @@
         </div>
     </div>
 
-    <!-- MODALE REGOLE MODERNO E UNIFORMATO -->
+    <!-- MODALE REGISTRA DISPOSITIVO -->
+    <div id="register-modal" class="modal-overlay modal-hidden">
+        <div class="modal-content">
+            <h2 style="color: var(--accent-blue);">📱 REGISTRA DISPOSITIVO</h2>
+            <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 14px;">Abilita il riconoscimento automatico su questo dispositivo per accedere istantaneamente senza dover digitare ogni volta le password.</p>
+
+            <div class="register-option-card">
+                <div class="register-option-header">
+                    <label>
+                        <input type="checkbox" id="reg-check-admin" style="accent-color: var(--accent-blue); width: 16px; height: 16px;">
+                        Pannello Admin
+                    </label>
+                    <span id="badge-admin-status" class="register-badge badge-inactive">Non registrato</span>
+                </div>
+                <button class="btn-timer-ctrl btn-start-timer" style="margin: 0;" onclick="registraAdminAction()">Abilita / Registra Admin</button>
+            </div>
+
+            <div class="register-option-card">
+                <div class="register-option-header">
+                    <label>
+                        <input type="checkbox" id="reg-check-dev" style="accent-color: var(--accent-purple); width: 16px; height: 16px;">
+                        Web Developer
+                    </label>
+                    <span id="badge-dev-status" class="register-badge badge-inactive">Non registrato</span>
+                </div>
+                <button class="btn-timer-ctrl btn-dev-access" style="margin: 0;" onclick="registraDevAction()">Abilita / Registra Developer</button>
+            </div>
+
+            <button class="btn-timer-ctrl btn-stop-timer" onclick="chiudiModalRegistrazione()" style="margin-top: 12px;">↩️ Indietro</button>
+        </div>
+    </div>
+
+    <!-- MODALE REGOLE -->
     <div id="rules-modal" class="modal-overlay">
         <div class="modal-content">
             <h2>‼️ 🚨 REGOLE UFFICIALI 🚨 ‼️</h2>
@@ -655,19 +726,98 @@
         }
 
         window.controllaAdminEApri = function() {
-            if (prompt("Password admin:") === "pozzallo2026") {
+            const isRegAdmin = localStorage.getItem('device_registered_admin') === 'true';
+            if (isRegAdmin) {
                 document.getElementById('seeker-modal').classList.remove('modal-hidden');
             } else {
-                alert("Errata!");
+                if (prompt("Password admin:") === "pozzallo2026") {
+                    localStorage.setItem('device_registered_admin', 'true');
+                    document.getElementById('seeker-modal').classList.remove('modal-hidden');
+                } else {
+                    alert("Errata!");
+                }
             }
         }
 
         window.controllaDevEApri = function() {
-            if (prompt("Password Web Developer:") === "marcodev123") {
+            const isRegDev = localStorage.getItem('device_registered_dev') === 'true';
+            if (isRegDev) {
                 document.getElementById('seeker-modal').classList.add('modal-hidden');
                 document.getElementById('dev-modal').classList.remove('modal-hidden');
             } else {
-                alert("Password Developer errata!");
+                if (prompt("Inserisci la password Web Developer:") === "marcodev123") {
+                    localStorage.setItem('device_registered_dev', 'true');
+                    document.getElementById('seeker-modal').classList.add('modal-hidden');
+                    document.getElementById('dev-modal').classList.remove('modal-hidden');
+                } else {
+                    alert("Password Developer errata!");
+                }
+            }
+        }
+
+        window.apriModalRegistrazione = function() {
+            document.getElementById('seeker-modal').classList.add('modal-hidden');
+            document.getElementById('register-modal').classList.remove('modal-hidden');
+            aggiornaStatoBadgeRegistrazione();
+        }
+
+        window.chiudiModalRegistrazione = function() {
+            document.getElementById('register-modal').classList.add('modal-hidden');
+            document.getElementById('seeker-modal').classList.remove('modal-hidden');
+        }
+
+        window.mostraAiutoRegistrazione = function() {
+            alert("Registrando questo dispositivo, il browser memorizzerà in modo sicuro la tua autorizzazione. In questo modo, quando cliccherai sul tasto impostazioni o developer in futuro, entrerai direttamente senza dovere rimettere ogni volta le password.");
+        }
+
+        window.aggiornaStatoBadgeRegistrazione = function() {
+            const isRegAdmin = localStorage.getItem('device_registered_admin') === 'true';
+            const isRegDev = localStorage.getItem('device_registered_dev') === 'true';
+
+            document.getElementById('reg-check-admin').checked = isRegAdmin;
+            const badgeAdmin = document.getElementById('badge-admin-status');
+            badgeAdmin.textContent = isRegAdmin ? "Registrato" : "Non registrato";
+            badgeAdmin.className = "register-badge " + (isRegAdmin ? "badge-active" : "badge-inactive");
+
+            document.getElementById('reg-check-dev').checked = isRegDev;
+            const badgeDev = document.getElementById('badge-dev-status');
+            badgeDev.textContent = isRegDev ? "Registrato" : "Non registrato";
+            badgeDev.className = "register-badge " + (isRegDev ? "badge-active" : "badge-inactive");
+        }
+
+        window.registraAdminAction = function() {
+            const isRegAdmin = localStorage.getItem('device_registered_admin') === 'true';
+            if (isRegAdmin) {
+                if (confirm("Vuoi rimuovere la registrazione Admin da questo dispositivo?")) {
+                    localStorage.removeItem('device_registered_admin');
+                    aggiornaStatoBadgeRegistrazione();
+                }
+            } else {
+                if (prompt("Inserisci la password admin:") === "pozzallo2026") {
+                    localStorage.setItem('device_registered_admin', 'true');
+                    aggiornaStatoBadgeRegistrazione();
+                    alert("Dispositivo registrato con successo per il Pannello Admin!");
+                } else {
+                    alert("Password errata!");
+                }
+            }
+        }
+
+        window.registraDevAction = function() {
+            const isRegDev = localStorage.getItem('device_registered_dev') === 'true';
+            if (isRegDev) {
+                if (confirm("Vuoi rimuovere la registrazione Web Developer da questo dispositivo?")) {
+                    localStorage.removeItem('device_registered_dev');
+                    aggiornaStatoBadgeRegistrazione();
+                }
+            } else {
+                if (prompt("Inserisci la password Web Developer:") === "marcodev123") {
+                    localStorage.setItem('device_registered_dev', 'true');
+                    aggiornaStatoBadgeRegistrazione();
+                    alert("Dispositivo registrato con successo per il Web Developer!");
+                } else {
+                    alert("Password errata!");
+                }
             }
         }
 
