@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Nascondino Pozzallo - Editor Libero & Ore & Seeker</title>
+    <title>Nascondino Pozzallo</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     <!-- Leaflet Draw Plugin per il disegno libero a pennello/poligono -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"/>
@@ -41,6 +41,9 @@
             color: var(--text-main);
             overflow: hidden;
             position: fixed;
+            /* Correzione sicura per barra inferiore e notch di Safari iOS su tutti i modelli */
+            padding-bottom: env(safe-area-inset-bottom);
+            padding-top: env(safe-area-inset-top);
         }
 
         body {
@@ -156,7 +159,6 @@
             letter-spacing: 1.2px;
         }
 
-        /* BARRA ANNUNCI ADMIN PERSONALIZZATA SOTTO IL TIMER */
         .admin-announcement-bar {
             background: linear-gradient(135deg, #065f46, #047857);
             border-bottom: 1px solid rgba(16, 185, 129, 0.4);
@@ -184,32 +186,9 @@
             position: relative;
         }
 
-        .map-type-toggle {
-            position: absolute;
-            top: 125px;
-            right: 16px;
-            background: var(--bg-glass);
-            backdrop-filter: blur(12px);
-            border: 1px solid var(--border-color);
-            color: white;
-            padding: 8px 14px;
-            border-radius: 12px;
-            font-size: 0.78rem;
-            font-weight: 700;
-            cursor: pointer;
-            box-shadow: var(--shadow-neon);
-            z-index: 998;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            transition: var(--transition-smooth);
-        }
-        .map-type-toggle:hover { border-color: var(--accent-blue); background: var(--bg-card); }
-        .map-type-toggle:active { transform: scale(0.94); }
-
         .btn-center-map {
             position: absolute;
-            bottom: 40px;
+            bottom: calc(40px + env(safe-area-inset-bottom));
             right: 18px;
             background: var(--bg-glass);
             backdrop-filter: blur(12px);
@@ -230,23 +209,25 @@
         .btn-center-map:hover { background: var(--accent-blue); color: var(--bg-main); transform: scale(1.05); }
         .btn-center-map:active { transform: scale(0.9); }
 
+        /* PULSANTE ADMIN E PULSANTE CARTINA AFFIANCATI IN BASSO A SINISTRA (Stessa altezza, stessa dimensione) */
         .btn-secret-admin {
             position: absolute;
-            bottom: 40px;
+            bottom: calc(40px + env(safe-area-inset-bottom));
             left: 18px;
-            background: rgba(15, 23, 42, 0.6);
+            background: rgba(15, 23, 42, 0.85);
             backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            color: rgba(255, 255, 255, 0.4);
-            width: 32px;
-            height: 32px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.8);
+            width: 42px;
+            height: 42px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.75rem;
+            font-size: 1.1rem;
             cursor: pointer;
             z-index: 998;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
             transition: var(--transition-smooth);
         }
         .btn-secret-admin:hover, .btn-secret-admin:active {
@@ -256,10 +237,33 @@
             transform: scale(1.1);
         }
 
+        .btn-map-toggle-icon {
+            position: absolute;
+            bottom: calc(40px + env(safe-area-inset-bottom));
+            left: 68px; /* Accanto al pulsante admin */
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            color: var(--accent-blue);
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            cursor: pointer;
+            z-index: 998;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+            transition: var(--transition-smooth);
+        }
+        .btn-map-toggle-icon:hover { background: var(--accent-blue); color: var(--bg-main); transform: scale(1.05); }
+        .btn-map-toggle-icon:active { transform: scale(0.9); }
+
         .watermark {
             position: absolute;
-            bottom: 10px;
-            left: 18px;
+            bottom: calc(10px + env(safe-area-inset-bottom));
+            left: 120px;
             font-size: 0.68rem;
             color: rgba(255, 255, 255, 0.3);
             z-index: 999;
@@ -299,7 +303,7 @@
             padding: 22px;
             width: 100%;
             max-width: 420px;
-            max-height: 88vh;
+            max-height: 85vh;
             overflow-y: auto;
             box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7), 0 0 30px rgba(56, 189, 248, 0.08);
             -webkit-overflow-scrolling: touch;
@@ -482,8 +486,9 @@
 
     <div id="map"></div>
 
-    <button class="map-type-toggle" onclick="toggleMapTypeLocal()">
-        🗺️ <span id="map-type-label">Satellitare</span>
+    <!-- NUOVA ICONA CARTINA COMPATTA IN BASSO A SINISTRA ACCANTO ALL'ADMIN -->
+    <button class="btn-map-toggle-icon" onclick="toggleMapTypeLocal()" title="Cambia vista mappa (Normale/Satellitare)">
+        🗺️
     </button>
 
     <button class="btn-center-map" onclick="centraMappaSuMe()" title="Centra sulla mia posizione">🎯</button>
@@ -642,7 +647,6 @@
                 map.removeLayer(satelliteLayer);
                 normalLayer.addTo(map);
             }
-            document.getElementById('map-type-label').textContent = isSatelliteLocal ? "Normale" : "Satellitare";
         }
 
         window.toggleRulesModal = function(show) {
@@ -676,7 +680,6 @@
             alert("In questa casella puoi digitare qualsiasi testo (es. ROUND FINITO). Cliccando 'Invia Scritta a Tutti', comparirà una barra verde personalizzata subito sotto al timer nel sito di tutti gli utenti. Puoi decidere di fermarla manualmente cliccando 'Stop' oppure impostare un tempo in secondi per farlo fermare in automatico.");
         }
 
-        // --- SALVA CHI CERCA DAL PANNELLO ADMIN ---
         window.salvaSeekerAdmin = function() {
             const seekerName = document.getElementById('input-seeker-name').value.trim();
             if (seekerName !== "") {
@@ -688,7 +691,6 @@
             }
         }
 
-        // --- GESTIONE ANNUNCIO PERSONALIZZATO ADMIN ---
         window.inviaAnnuncioAdmin = function() {
             const text = document.getElementById('input-admin-announcement').value.trim();
             const durationSecs = parseInt(document.getElementById('input-announcement-duration').value) || 0;
@@ -710,7 +712,6 @@
             document.getElementById('seeker-modal').classList.add('modal-hidden');
         }
 
-        // --- ATTIVA DISEGNO LIBERO A PENNELLO/POLIGONO ---
         window.attivaDisegnoPoligono = function() {
             document.getElementById('dev-modal').classList.add('modal-hidden');
             alert("Modalità Pennello attiva: Clicca sulla mappa i vari punti per tracciare il perimetro. Doppio clic per chiudere la forma.");
